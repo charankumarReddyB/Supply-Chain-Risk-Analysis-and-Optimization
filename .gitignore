@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.so
+.venv/
+venv/
+env/
+.env
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment Variables (SENSITIVE)
+backend/.env
+**/.env
+**/.env.local
+**/.env.production
+
+# Database / Data
+*.db
+*.sqlite
+*.sqlite3
+
+# MySQL data directory (large binary files, should not be in git)
+backend/mysql-data/
+
+# Binary MySQL files
+*.ibd
+*.sdi
+*.pem
+undo_*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/

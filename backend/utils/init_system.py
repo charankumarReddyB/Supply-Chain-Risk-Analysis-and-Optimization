@@ -1,0 +1,79 @@
+import os
+import sys
+from werkzeug.security import generate_password_hash
+from backend.models.database import run_sql_file, execute_query, get_db_connection
+from backend.etl.generate_mock_data import generate_data
+from backend.etl.run_etl import run_etl_pipeline
+from backend.ml.train import train_model
+
+def init_system():
+    print("======================================================================")
+    print("            SUPPLY CHAIN SYSTEM INITIALIZATION & SEEDING              ")
+    print("======================================================================")
+    
+    # 1. Create Schema DDL
+    schema_path = os.path.join("backend", "database_setup.sql")
+    print(f"\nStep 1: Setting up database schema from {schema_path}...")
+    try:
+        run_sql_file(schema_path)
+        print("Database schema created successfully.")
+    except Exception as e:
+        print(f"Error during schema creation: {e}")
+        print("Make sure your MySQL server is running and configured correctly in config.py.")
+        sys.exit(1)
+        
+    # 2. Seed Admin User
+    print("\nStep 2: Seeding admin user...")
+    try:
+        # Check if admin exists
+        admin_check = execute_query("SELECT id FROM users WHERE username = 'admin'")
+        if not admin_check:
+            hashed_pwd = generate_password_hash("admin123")
+            execute_query(
+                "INSERT INTO users (username, password_hash, email, role) VALUES (%s, %s, %s, %s)",
+                ("admin", hashed_pwd, "admin@supplychain.com", "admin"),
+                fetch=False
+            )
+            print("Admin user created successfully.")
+            print("Username: admin")
+            print("Password: admin123")
+        else:
+            print("Admin user already exists.")
+    except Exception as e:
+        print(f"Error seeding admin user: {e}")
+        
+    # 3. Generate Mock Data
+    print("\nStep 3: Generating mock DataCo CSV dataset...")
+    try:
+        generate_data(18500)
+    except Exception as e:
+        print(f"Error generating mock dataset: {e}")
+        sys.exit(1)
+        
+    # 4. Run ETL Pipeline
+    print("\nStep 4: Running ETL pipeline to clean and load data...")
+    try:
+        run_etl_pipeline()
+        print("ETL pipeline executed successfully. Database populated.")
+    except Exception as e:
+        print(f"Error running ETL pipeline: {e}")
+        sys.exit(1)
+        
+    # 5. Train Machine Learning Model
+    print("\nStep 5: Training Decision Tree risk classifier...")
+    try:
+        train_model()
+        print("ML Model trained and assets exported successfully.")
+    except Exception as e:
+        print(f"Error training ML model: {e}")
+        sys.exit(1)
+        
+    print("\n======================================================================")
+    print("                    INITIALIZATION COMPLETE!                           ")
+    print("======================================================================")
+    print("Your backend is now ready. You can start the server with:")
+    print("  python -m backend.app")
+    print("======================================================================")
+
+if __name__ == "__main__":
+    init_system()
