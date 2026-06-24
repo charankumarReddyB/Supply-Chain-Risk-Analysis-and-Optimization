@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from backend.models.database import execute_query
 from datetime import datetime
-from backend.middleware.auth_middleware import admin_required
+from backend.middleware.auth_middleware import admin_required, get_current_user_role
+from backend.models.pydantic_schemas import OrderPublic, OrderAdmin, ShipmentPublic, ShipmentAdmin
 
 orders_bp = Blueprint("orders", __name__, url_prefix="/api/orders")
 
@@ -37,7 +38,12 @@ def get_all_orders():
             if isinstance(o["order_date"], datetime):
                 o["order_date"] = o["order_date"].strftime("%Y-%m-%d %H:%M:%S")
             o["currency"] = "INR"
-        return jsonify(orders), 200
+        role = get_current_user_role()
+        if role == "admin":
+            result = [OrderAdmin(**o).model_dump() for o in orders]
+        else:
+            result = [OrderPublic(**o).model_dump() for o in orders]
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": f"Failed to fetch orders: {str(e)}"}), 500
 
@@ -75,15 +81,23 @@ def get_order_details(order_id):
             
         # Get shipment info if available
         shipment = execute_query("SELECT * FROM shipments WHERE order_id = %s", (order_id,))
+        role = get_current_user_role()
         if shipment:
             shipment_dict = shipment[0]
             if isinstance(shipment_dict["shipping_date"], datetime):
                 shipment_dict["shipping_date"] = shipment_dict["shipping_date"].strftime("%Y-%m-%d %H:%M:%S")
-            order_dict["shipment"] = shipment_dict
+            if role == "admin":
+                order_dict["shipment"] = ShipmentAdmin(**shipment_dict).model_dump()
+            else:
+                order_dict["shipment"] = ShipmentPublic(**shipment_dict).model_dump()
         else:
             order_dict["shipment"] = None
             
-        return jsonify(order_dict), 200
+        if role == "admin":
+            result = OrderAdmin(**order_dict).model_dump()
+        else:
+            result = OrderPublic(**order_dict).model_dump()
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": f"Failed to fetch order: {str(e)}"}), 500
 

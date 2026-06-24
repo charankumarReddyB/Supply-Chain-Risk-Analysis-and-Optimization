@@ -7,12 +7,13 @@ All endpoints are JWT-protected.
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from backend.controllers.analytics_controller import AnalyticsController
+from backend.middleware.auth_middleware import admin_required
 
 analytics_bp = Blueprint("analytics", __name__, url_prefix="/api/analytics")
 
 
 @analytics_bp.route("/top-delayed-suppliers", methods=["GET"])
-@jwt_required()
+@admin_required
 def top_delayed_suppliers():
     """
     GET /api/analytics/top-delayed-suppliers?limit=10
@@ -26,7 +27,7 @@ def top_delayed_suppliers():
 
 
 @analytics_bp.route("/highest-revenue-products", methods=["GET"])
-@jwt_required()
+@admin_required
 def highest_revenue_products():
     """
     GET /api/analytics/highest-revenue-products?limit=10
@@ -40,7 +41,7 @@ def highest_revenue_products():
 
 
 @analytics_bp.route("/inventory-summary", methods=["GET"])
-@jwt_required()
+@admin_required
 def inventory_summary():
     """
     GET /api/analytics/inventory-summary
@@ -53,7 +54,7 @@ def inventory_summary():
 
 
 @analytics_bp.route("/monthly-sales", methods=["GET"])
-@jwt_required()
+@admin_required
 def monthly_sales():
     """
     GET /api/analytics/monthly-sales?year=2023
@@ -67,7 +68,7 @@ def monthly_sales():
 
 
 @analytics_bp.route("/warehouse-performance", methods=["GET"])
-@jwt_required()
+@admin_required
 def warehouse_performance():
     """
     GET /api/analytics/warehouse-performance
@@ -80,7 +81,7 @@ def warehouse_performance():
 
 
 @analytics_bp.route("/shipping-performance", methods=["GET"])
-@jwt_required()
+@admin_required
 def shipping_performance():
     """
     GET /api/analytics/shipping-performance
@@ -93,7 +94,7 @@ def shipping_performance():
 
 
 @analytics_bp.route("/risk-summary", methods=["GET"])
-@jwt_required()
+@admin_required
 def risk_summary():
     """
     GET /api/analytics/risk-summary
@@ -106,7 +107,7 @@ def risk_summary():
 
 
 @analytics_bp.route("/supplier-ranking", methods=["GET"])
-@jwt_required()
+@admin_required
 def supplier_ranking():
     """
     GET /api/analytics/supplier-ranking

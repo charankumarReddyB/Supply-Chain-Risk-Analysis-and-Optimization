@@ -10,12 +10,13 @@ from flask import Blueprint, send_file, jsonify, request
 from flask_jwt_extended import jwt_required
 from backend.config import Config
 from backend.services.report_service import ReportService
+from backend.middleware.auth_middleware import admin_required
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/api/reports")
 
 
 @reports_bp.route("/pdf", methods=["GET"])
-@jwt_required()
+@admin_required
 def download_pdf_report():
     """
     GET /api/reports/pdf
@@ -40,7 +41,7 @@ def download_pdf_report():
 
 
 @reports_bp.route("/excel", methods=["GET"])
-@jwt_required()
+@admin_required
 def download_excel_report():
     """
     GET /api/reports/excel
@@ -65,7 +66,7 @@ def download_excel_report():
 
 
 @reports_bp.route("/risk-summary", methods=["GET"])
-@jwt_required()
+@admin_required
 def download_risk_summary():
     """
     GET /api/reports/risk-summary
@@ -89,7 +90,7 @@ def download_risk_summary():
 
 
 @reports_bp.route("/supplier-performance", methods=["GET"])
-@jwt_required()
+@admin_required
 def download_supplier_performance():
     """
     GET /api/reports/supplier-performance
@@ -113,7 +114,7 @@ def download_supplier_performance():
 
 
 @reports_bp.route("/monthly", methods=["GET"])
-@jwt_required()
+@admin_required
 def download_monthly_report():
     """
     GET /api/reports/monthly?year=2023&month=5
@@ -142,7 +143,7 @@ def download_monthly_report():
 
 
 @reports_bp.route("/yearly", methods=["GET"])
-@jwt_required()
+@admin_required
 def download_yearly_report():
     """
     GET /api/reports/yearly?year=2023

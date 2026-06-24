@@ -46,7 +46,7 @@ def admin_required(fn):
                 logger.warning(
                     f"Unauthorized admin access attempt by user_id={current_user_id}"
                 )
-                return jsonify({"error": "Admin privileges required for this action."}), 403
+                return jsonify({"detail": "This data is restricted to admin accounts."}), 403
             return fn(*args, **kwargs)
         except Exception as e:
             logger.error(f"Admin check failed: {e}")
@@ -73,3 +73,19 @@ def validate_json(*required_fields):
             return fn(*args, **kwargs)
         return wrapper
     return decorator
+
+
+def get_current_user_role() -> str:
+    """Helper to query the current user's role from the database using active JWT identity."""
+    try:
+        current_user_id = get_jwt_identity()
+        if not current_user_id:
+            return "user"
+        user = execute_query(
+            "SELECT role FROM users WHERE id = %s", (current_user_id,)
+        )
+        if user:
+            return user[0].get("role", "user")
+    except Exception:
+        pass
+    return "user"

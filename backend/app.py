@@ -63,6 +63,7 @@ def create_app(config_class=None):
     from backend.routes.reports      import reports_bp
     from backend.routes.etl          import etl_bp
     from backend.routes.monte_carlo  import mc_bp
+    from backend.routes.cost         import cost_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -78,6 +79,7 @@ def create_app(config_class=None):
     app.register_blueprint(reports_bp)
     app.register_blueprint(etl_bp)
     app.register_blueprint(mc_bp)
+    app.register_blueprint(cost_bp)
 
     # ─── Global Routes ────────────────────────────────────────────────────────
 

@@ -190,7 +190,7 @@ def delete_warehouse(warehouse_id):
 # ─── Data Warehouse (OLAP) Management ────────────────────────────────────────
 
 @warehouse_bp.route("/olap/summary", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_olap_summary():
     """
     GET /api/warehouses/olap/summary

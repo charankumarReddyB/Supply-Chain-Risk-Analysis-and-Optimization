@@ -33,7 +33,7 @@ def run_simulation():
 
 
 @mc_bp.route("/results", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_cached_results():
     """
     GET /api/monte-carlo/results
@@ -49,6 +49,7 @@ def get_cached_results():
 
 
 @mc_bp.route("/graph/<filename>", methods=["GET"])
+@admin_required
 def get_graph(filename: str):
     """
     GET /api/monte-carlo/graph/<filename>

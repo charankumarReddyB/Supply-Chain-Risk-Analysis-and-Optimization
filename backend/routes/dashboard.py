@@ -1,18 +1,13 @@
-"""
-routes/dashboard.py
-Dashboard API endpoints returning KPIs, trends, and analytics summaries.
-All endpoints are JWT-protected.
-"""
-
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from backend.controllers.dashboard_controller import DashboardController
+from backend.middleware.auth_middleware import admin_required
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/api/dashboard")
 
 
 @dashboard_bp.route("/stats", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_stats():
     """
     GET /api/dashboard/stats
@@ -58,7 +53,7 @@ def get_kpis():
 
 
 @dashboard_bp.route("/monthly-sales", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_monthly_sales():
     """
     GET /api/dashboard/monthly-sales?limit=12
@@ -72,7 +67,7 @@ def get_monthly_sales():
 
 
 @dashboard_bp.route("/supplier-ranking", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_supplier_ranking():
     """
     GET /api/dashboard/supplier-ranking?limit=10

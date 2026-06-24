@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from backend.models.database import execute_query
-from backend.middleware.auth_middleware import admin_required
+from backend.middleware.auth_middleware import admin_required, get_current_user_role
+from backend.models.pydantic_schemas import ProductPublic, ProductAdmin
 
 products_bp = Blueprint("products", __name__, url_prefix="/api/products")
 
@@ -12,7 +13,12 @@ def get_all_products():
         products = execute_query("SELECT * FROM products ORDER BY product_id")
         for p in products:
             p["currency"] = "INR"
-        return jsonify(products), 200
+        role = get_current_user_role()
+        if role == "admin":
+            result = [ProductAdmin(**p).model_dump() for p in products]
+        else:
+            result = [ProductPublic(**p).model_dump() for p in products]
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": f"Failed to fetch products: {str(e)}"}), 500
 
@@ -25,7 +31,12 @@ def get_product(product_id):
             return jsonify({"error": "Product not found"}), 404
         p_dict = product[0]
         p_dict["currency"] = "INR"
-        return jsonify(p_dict), 200
+        role = get_current_user_role()
+        if role == "admin":
+            result = ProductAdmin(**p_dict).model_dump()
+        else:
+            result = ProductPublic(**p_dict).model_dump()
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": f"Failed to fetch product: {str(e)}"}), 500
 
@@ -149,7 +160,7 @@ def delete_product(product_id):
         return jsonify({"error": f"Failed to delete product: {str(e)}"}), 500
 
 @products_bp.route("/high-risk", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_high_risk_products():
     """Returns products frequently associated with late deliveries or negative profit."""
     try:

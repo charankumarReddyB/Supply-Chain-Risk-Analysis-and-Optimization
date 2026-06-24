@@ -230,3 +230,39 @@ class AnalyticsController:
         except Exception as e:
             logger.error(f"Supplier ranking error: {e}")
             raise
+
+    @staticmethod
+    def get_cost_by_category() -> list:
+        """Cost by category: Sales - Profit."""
+        try:
+            return execute_query("""
+                SELECT 
+                    p.Product_Category_Name AS category, 
+                    ROUND(SUM(f.Sales - f.Profit), 2) AS total_cost,
+                    'INR' as currency
+                FROM fact_order f 
+                JOIN dim_product p ON f.Product_ID = p.Product_ID
+                GROUP BY p.Product_Category_Name
+                ORDER BY total_cost DESC
+            """)
+        except Exception as e:
+            logger.error(f"Cost by category query error: {e}")
+            raise
+
+    @staticmethod
+    def get_cost_by_region() -> list:
+        """Cost by region: Sales - Profit."""
+        try:
+            return execute_query("""
+                SELECT 
+                    w.Warehouse_City AS region, 
+                    ROUND(SUM(f.Sales - f.Profit), 2) AS total_cost,
+                    'INR' as currency
+                FROM fact_order f 
+                JOIN dim_warehouse w ON f.Warehouse_ID = w.Warehouse_ID
+                GROUP BY w.Warehouse_City
+                ORDER BY total_cost DESC
+            """)
+        except Exception as e:
+            logger.error(f"Cost by region query error: {e}")
+            raise

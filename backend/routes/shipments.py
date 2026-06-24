@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from backend.models.database import execute_query
 from datetime import datetime
-from backend.middleware.auth_middleware import admin_required
+from backend.middleware.auth_middleware import admin_required, get_current_user_role
+from backend.models.pydantic_schemas import ShipmentPublic, ShipmentAdmin
 
 shipments_bp = Blueprint("shipments", __name__, url_prefix="/api/shipments")
 
@@ -32,7 +33,12 @@ def get_all_shipments():
                 s["order_date"] = s["order_date"].strftime("%Y-%m-%d %H:%M:%S")
             if isinstance(s["shipping_date"], datetime):
                 s["shipping_date"] = s["shipping_date"].strftime("%Y-%m-%d %H:%M:%S")
-        return jsonify(shipments), 200
+        role = get_current_user_role()
+        if role == "admin":
+            result = [ShipmentAdmin(**s).model_dump() for s in shipments]
+        else:
+            result = [ShipmentPublic(**s).model_dump() for s in shipments]
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": f"Failed to fetch shipments: {str(e)}"}), 500
 
@@ -70,7 +76,12 @@ def get_shipment(shipment_id):
         if isinstance(ship_dict["shipping_date"], datetime):
             ship_dict["shipping_date"] = ship_dict["shipping_date"].strftime("%Y-%m-%d %H:%M:%S")
             
-        return jsonify(ship_dict), 200
+        role = get_current_user_role()
+        if role == "admin":
+            result = ShipmentAdmin(**ship_dict).model_dump()
+        else:
+            result = ShipmentPublic(**ship_dict).model_dump()
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": f"Failed to fetch shipment: {str(e)}"}), 500
 

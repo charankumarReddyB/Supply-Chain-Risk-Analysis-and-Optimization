@@ -1,19 +1,13 @@
-"""
-routes/optimization.py
-Optimization Engine API endpoints.
-Provides recommendations for: best supplier, best warehouse, inventory reorder,
-best shipping method, transportation improvement, cost reduction, delivery optimization.
-"""
-
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from backend.services.optimization_service import OptimizationService
+from backend.middleware.auth_middleware import admin_required
 
 optimization_bp = Blueprint("optimization", __name__, url_prefix="/api/optimization")
 
 
 @optimization_bp.route("/suppliers", methods=["GET"])
-@jwt_required()
+@admin_required
 def recommend_suppliers():
     """
     GET /api/optimization/suppliers
@@ -27,7 +21,7 @@ def recommend_suppliers():
 
 
 @optimization_bp.route("/warehouses", methods=["GET"])
-@jwt_required()
+@admin_required
 def recommend_warehouses():
     """
     GET /api/optimization/warehouses
@@ -40,7 +34,7 @@ def recommend_warehouses():
 
 
 @optimization_bp.route("/shipping-method", methods=["GET"])
-@jwt_required()
+@admin_required
 def recommend_shipping_method():
     """
     GET /api/optimization/shipping-method
@@ -53,7 +47,7 @@ def recommend_shipping_method():
 
 
 @optimization_bp.route("/delayed-deliveries", methods=["GET"])
-@jwt_required()
+@admin_required
 def detect_delays():
     """
     GET /api/optimization/delayed-deliveries
@@ -66,7 +60,7 @@ def detect_delays():
 
 
 @optimization_bp.route("/replenish", methods=["GET"])
-@jwt_required()
+@admin_required
 def recommend_replenishment():
     """
     GET /api/optimization/replenish
@@ -79,7 +73,7 @@ def recommend_replenishment():
 
 
 @optimization_bp.route("/high-risk-shipments", methods=["GET"])
-@jwt_required()
+@admin_required
 def identify_high_risk():
     """
     GET /api/optimization/high-risk-shipments
@@ -92,7 +86,7 @@ def identify_high_risk():
 
 
 @optimization_bp.route("/cost-reduction", methods=["GET"])
-@jwt_required()
+@admin_required
 def recommend_cost_reductions():
     """
     GET /api/optimization/cost-reduction
@@ -105,7 +99,7 @@ def recommend_cost_reductions():
 
 
 @optimization_bp.route("/delivery", methods=["GET"])
-@jwt_required()
+@admin_required
 def delivery_optimization():
     """
     GET /api/optimization/delivery
@@ -118,7 +112,7 @@ def delivery_optimization():
 
 
 @optimization_bp.route("/transportation", methods=["GET"])
-@jwt_required()
+@admin_required
 def transportation_improvement():
     """
     GET /api/optimization/transportation

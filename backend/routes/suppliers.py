@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from backend.models.database import execute_query
-from backend.middleware.auth_middleware import admin_required
+from backend.middleware.auth_middleware import admin_required, get_current_user_role
+from backend.models.pydantic_schemas import SupplierPublic, SupplierAdmin
 
 suppliers_bp = Blueprint("suppliers", __name__, url_prefix="/api/suppliers")
 
@@ -12,7 +13,12 @@ def get_all_suppliers():
         suppliers = execute_query("SELECT * FROM suppliers ORDER BY supplier_id")
         for s in suppliers:
             s["currency"] = "INR"
-        return jsonify(suppliers), 200
+        role = get_current_user_role()
+        if role == "admin":
+            result = [SupplierAdmin(**s).model_dump() for s in suppliers]
+        else:
+            result = [SupplierPublic(**s).model_dump() for s in suppliers]
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": f"Failed to fetch suppliers: {str(e)}"}), 500
 
@@ -25,7 +31,12 @@ def get_supplier(supplier_id):
             return jsonify({"error": "Supplier not found"}), 404
         s_dict = supplier[0]
         s_dict["currency"] = "INR"
-        return jsonify(s_dict), 200
+        role = get_current_user_role()
+        if role == "admin":
+            result = SupplierAdmin(**s_dict).model_dump()
+        else:
+            result = SupplierPublic(**s_dict).model_dump()
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": f"Failed to fetch supplier: {str(e)}"}), 500
 
@@ -132,7 +143,7 @@ def delete_supplier(supplier_id):
         return jsonify({"error": f"Failed to delete supplier: {str(e)}"}), 500
 
 @suppliers_bp.route("/performance", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_supplier_performance():
     """Returns analytics regarding supplier reliability, order counts, and delay rates."""
     try:

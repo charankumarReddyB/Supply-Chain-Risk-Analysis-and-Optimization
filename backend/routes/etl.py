@@ -79,7 +79,7 @@ def run_etl():
 
 
 @etl_bp.route("/status", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_etl_status():
     """
     GET /api/etl/status
@@ -92,7 +92,7 @@ def get_etl_status():
 
 
 @etl_bp.route("/logs", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_etl_logs():
     """
     GET /api/etl/logs?limit=20

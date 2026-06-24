@@ -17,7 +17,7 @@ risk_bp = Blueprint("risk", __name__, url_prefix="/api/risk")
 
 
 @risk_bp.route("/summary", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_risk_summary():
     """
     GET /api/risk/summary
@@ -30,7 +30,7 @@ def get_risk_summary():
 
 
 @risk_bp.route("/suppliers", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_supplier_risk():
     """
     GET /api/risk/suppliers
@@ -43,7 +43,7 @@ def get_supplier_risk():
 
 
 @risk_bp.route("/delivery-delays", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_delivery_delay_risk():
     """
     GET /api/risk/delivery-delays
@@ -69,7 +69,7 @@ def get_inventory_shortage_risk():
 
 
 @risk_bp.route("/shipping-performance", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_shipping_performance_risk():
     """
     GET /api/risk/shipping-performance
@@ -82,7 +82,7 @@ def get_shipping_performance_risk():
 
 
 @risk_bp.route("/warehouse-performance", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_warehouse_performance_risk():
     """
     GET /api/risk/warehouse-performance
@@ -97,7 +97,7 @@ def get_warehouse_performance_risk():
 # ─── ML Endpoints ────────────────────────────────────────────────────────────
 
 @risk_bp.route("/predict", methods=["POST"])
-@jwt_required()
+@admin_required
 def predict_risk():
     """
     POST /api/risk/predict
@@ -123,7 +123,7 @@ def predict_risk():
 
 
 @risk_bp.route("/model-info", methods=["GET"])
-@jwt_required()
+@admin_required
 def get_model_info():
     """
     GET /api/risk/model-info
