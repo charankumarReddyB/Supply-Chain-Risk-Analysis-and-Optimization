@@ -8,13 +8,14 @@ load_dotenv()
 class Config:
     # Database configuration
     DB_HOST = os.environ.get("DB_HOST", "localhost")
-    DB_PORT = int(os.environ.get("DB_PORT", 3306))
-    DB_USER = os.environ.get("DB_USER", "root")
-    DB_PASSWORD = os.environ.get("DB_PASSWORD", "") # Default password for local testing
+    DB_PORT = int(os.environ.get("DB_PORT", 5432))
+    DB_USER = os.environ.get("DB_USER", "postgres")
+    DB_PASSWORD = os.environ.get("DB_PASSWORD", "") 
     DB_NAME = os.environ.get("DB_NAME", "supply_chain_db")
+    DB_SSLMODE = os.environ.get("DB_SSLMODE", "require")
     
     # SQLAlchemy Connection URI
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode={DB_SSLMODE}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT Configuration

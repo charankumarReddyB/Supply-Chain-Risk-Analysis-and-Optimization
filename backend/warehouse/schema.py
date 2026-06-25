@@ -25,13 +25,11 @@ def get_warehouse_summary():
         return {"error": f"Failed to retrieve data warehouse summary: {str(e)}"}
 
 def clear_warehouse():
-    """Truncates fact and dimension tables."""
+    """Truncates fact and dimension tables recursively using CASCADE."""
     try:
-        execute_query("SET FOREIGN_KEY_CHECKS = 0;", fetch=False)
         tables = ["fact_order", "dim_customer", "dim_product", "dim_supplier", "dim_warehouse", "dim_shipping", "dim_date"]
-        for table in tables:
-            execute_query(f"TRUNCATE TABLE {table};", fetch=False)
-        execute_query("SET FOREIGN_KEY_CHECKS = 1;", fetch=False)
+        tables_str = ", ".join(tables)
+        execute_query(f"TRUNCATE TABLE {tables_str} CASCADE;", fetch=False)
         return {"message": "Data Warehouse tables truncated successfully."}
     except Exception as e:
         return {"error": f"Failed to clear warehouse: {str(e)}"}

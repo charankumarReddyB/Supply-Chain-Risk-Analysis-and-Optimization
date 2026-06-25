@@ -1,10 +1,7 @@
 -- ============================================================================
--- Supply Chain Risk Optimization - Complete Database Setup
+-- Supply Chain Risk Optimization - Complete Database Setup (PostgreSQL)
 -- OLTP + OLAP (Star Schema) + Indexes + Analytics Views
 -- ============================================================================
-
-CREATE DATABASE IF NOT EXISTS supply_chain_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE supply_chain_db;
 
 -- ============================================================================
 -- 1. OLTP SCHEMA (Operational Tables)
@@ -12,7 +9,7 @@ USE supply_chain_db;
 
 -- Users Table (JWT Auth)
 CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -22,22 +19,18 @@ CREATE TABLE IF NOT EXISTS users (
     location VARCHAR(100) DEFAULT NULL,
     department VARCHAR(100) DEFAULT NULL,
     employee_id VARCHAR(50) DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_users_username (username),
-    INDEX idx_users_email (email)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ETL Log Table
 CREATE TABLE IF NOT EXISTS etl_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     run_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) NOT NULL,
     records_processed INT DEFAULT 0,
     records_loaded INT DEFAULT 0,
     duration_seconds DECIMAL(10,2),
-    error_message TEXT,
-    INDEX idx_etl_logs_status (status),
-    INDEX idx_etl_logs_run_at (run_at)
+    error_message TEXT
 );
 
 -- Customers Table
@@ -49,9 +42,7 @@ CREATE TABLE IF NOT EXISTS customers (
     city VARCHAR(50),
     state VARCHAR(50),
     country VARCHAR(50),
-    zipcode VARCHAR(20),
-    INDEX idx_customers_segment (segment),
-    INDEX idx_customers_country (country)
+    zipcode VARCHAR(20)
 );
 
 -- Products Table
@@ -62,9 +53,7 @@ CREATE TABLE IF NOT EXISTS products (
     product_name VARCHAR(150) NOT NULL,
     product_price DECIMAL(10, 2) NOT NULL,
     product_status VARCHAR(50),
-    description TEXT,
-    INDEX idx_products_category (category_id),
-    INDEX idx_products_name (product_name(50))
+    description TEXT
 );
 
 -- Suppliers Table
@@ -74,9 +63,7 @@ CREATE TABLE IF NOT EXISTS suppliers (
     email VARCHAR(100),
     phone VARCHAR(50),
     rating DECIMAL(3, 2) DEFAULT 5.00,
-    status VARCHAR(20) DEFAULT 'Active',
-    INDEX idx_suppliers_status (status),
-    INDEX idx_suppliers_rating (rating)
+    status VARCHAR(20) DEFAULT 'Active'
 );
 
 -- Warehouses Table
@@ -87,8 +74,7 @@ CREATE TABLE IF NOT EXISTS warehouses (
     state VARCHAR(50),
     country VARCHAR(50),
     capacity INT,
-    manager VARCHAR(100),
-    INDEX idx_warehouses_country (country)
+    manager VARCHAR(100)
 );
 
 -- Orders Table
@@ -99,36 +85,29 @@ CREATE TABLE IF NOT EXISTS orders (
     quantity INT DEFAULT 1,
     sales DECIMAL(10, 2) NOT NULL,
     profit DECIMAL(10, 2) NOT NULL,
-    order_date DATETIME NOT NULL,
+    order_date TIMESTAMP NOT NULL,
     order_status VARCHAR(50),
     payment_type VARCHAR(50),
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE SET NULL,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE SET NULL,
-    INDEX idx_orders_customer (customer_id),
-    INDEX idx_orders_product (product_id),
-    INDEX idx_orders_date (order_date),
-    INDEX idx_orders_status (order_status)
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE SET NULL
 );
 
 -- Shipments Table
 CREATE TABLE IF NOT EXISTS shipments (
-    shipment_id INT AUTO_INCREMENT PRIMARY KEY,
+    shipment_id SERIAL PRIMARY KEY,
     order_id INT UNIQUE,
-    shipping_date DATETIME NOT NULL,
+    shipping_date TIMESTAMP NOT NULL,
     shipping_mode VARCHAR(50),
     days_shipping_real INT,
     days_shipment_scheduled INT,
     delivery_status VARCHAR(50),
     late_delivery_risk INT DEFAULT 0,
-    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
-    INDEX idx_shipments_mode (shipping_mode),
-    INDEX idx_shipments_delivery_status (delivery_status),
-    INDEX idx_shipments_late_risk (late_delivery_risk)
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
 
 -- Inventory Table
 CREATE TABLE IF NOT EXISTS inventory (
-    inventory_id INT AUTO_INCREMENT PRIMARY KEY,
+    inventory_id SERIAL PRIMARY KEY,
     product_id INT,
     warehouse_id INT,
     stock_level INT DEFAULT 0,
@@ -136,12 +115,8 @@ CREATE TABLE IF NOT EXISTS inventory (
     safety_stock INT DEFAULT 10,
     lead_time_days INT DEFAULT 5,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(warehouse_id) ON DELETE CASCADE,
-    INDEX idx_inventory_product (product_id),
-    INDEX idx_inventory_warehouse (warehouse_id),
-    INDEX idx_inventory_stock (stock_level)
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(warehouse_id) ON DELETE CASCADE
 );
-
 
 -- ============================================================================
 -- 2. OLAP DATA WAREHOUSE SCHEMA (Star Schema)
@@ -156,8 +131,7 @@ CREATE TABLE IF NOT EXISTS dim_customer (
     Customer_City VARCHAR(50),
     Customer_State VARCHAR(50),
     Customer_Country VARCHAR(50),
-    Customer_Zipcode VARCHAR(20),
-    INDEX idx_dim_customer_segment (Customer_Segment)
+    Customer_Zipcode VARCHAR(20)
 );
 
 -- Dimension Product
@@ -167,8 +141,7 @@ CREATE TABLE IF NOT EXISTS dim_product (
     Product_Category_Name VARCHAR(100),
     Product_Name VARCHAR(150) NOT NULL,
     Product_Price DECIMAL(10, 2) NOT NULL,
-    Product_Status VARCHAR(50),
-    INDEX idx_dim_product_category (Product_Category_Name(50))
+    Product_Status VARCHAR(50)
 );
 
 -- Dimension Supplier
@@ -176,8 +149,7 @@ CREATE TABLE IF NOT EXISTS dim_supplier (
     Supplier_ID INT PRIMARY KEY,
     Supplier_Name VARCHAR(100) NOT NULL,
     Supplier_Rating DECIMAL(3, 2),
-    Supplier_Status VARCHAR(20),
-    INDEX idx_dim_supplier_rating (Supplier_Rating)
+    Supplier_Status VARCHAR(20)
 );
 
 -- Dimension Warehouse
@@ -191,13 +163,11 @@ CREATE TABLE IF NOT EXISTS dim_warehouse (
 
 -- Dimension Shipping
 CREATE TABLE IF NOT EXISTS dim_shipping (
-    Shipping_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Shipping_ID SERIAL PRIMARY KEY,
     Shipping_Mode VARCHAR(50) NOT NULL,
     Delivery_Status VARCHAR(50) NOT NULL,
     Shipping_Date_Real_Days INT,
-    Shipping_Date_Scheduled_Days INT,
-    INDEX idx_dim_shipping_mode (Shipping_Mode),
-    INDEX idx_dim_shipping_status (Delivery_Status)
+    Shipping_Date_Scheduled_Days INT
 );
 
 -- Dimension Date
@@ -209,14 +179,12 @@ CREATE TABLE IF NOT EXISTS dim_date (
     Year INT NOT NULL,
     Quarter INT NOT NULL,
     Month_Name VARCHAR(20) NOT NULL,
-    Day_Of_Week VARCHAR(20) NOT NULL,
-    INDEX idx_dim_date_year_month (Year, Month),
-    INDEX idx_dim_date_quarter (Year, Quarter)
+    Day_Of_Week VARCHAR(20) NOT NULL
 );
 
 -- Fact Table: FactOrders (Central OLAP Table)
 CREATE TABLE IF NOT EXISTS fact_order (
-    Fact_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Fact_ID SERIAL PRIMARY KEY,
     Order_ID INT NOT NULL,
     Customer_ID INT NOT NULL,
     Product_ID INT NOT NULL,
@@ -234,11 +202,58 @@ CREATE TABLE IF NOT EXISTS fact_order (
     FOREIGN KEY (Supplier_ID) REFERENCES dim_supplier(Supplier_ID),
     FOREIGN KEY (Warehouse_ID) REFERENCES dim_warehouse(Warehouse_ID),
     FOREIGN KEY (Date_ID) REFERENCES dim_date(Date_ID),
-    FOREIGN KEY (Shipping_ID) REFERENCES dim_shipping(Shipping_ID),
-    INDEX idx_fact_order_risk (Risk_Level),
-    INDEX idx_fact_order_supplier (Supplier_ID),
-    INDEX idx_fact_order_warehouse (Warehouse_ID),
-    INDEX idx_fact_order_date (Date_ID),
-    INDEX idx_fact_order_customer (Customer_ID),
-    INDEX idx_fact_order_product (Product_ID)
+    FOREIGN KEY (Shipping_ID) REFERENCES dim_shipping(Shipping_ID)
 );
+
+-- ============================================================================
+-- 3. INDEXES (Separate from table creation blocks for Postgres compliance)
+-- ============================================================================
+
+CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+
+CREATE INDEX IF NOT EXISTS idx_etl_logs_status ON etl_logs (status);
+CREATE INDEX IF NOT EXISTS idx_etl_logs_run_at ON etl_logs (run_at);
+
+CREATE INDEX IF NOT EXISTS idx_customers_segment ON customers (segment);
+CREATE INDEX IF NOT EXISTS idx_customers_country ON customers (country);
+
+CREATE INDEX IF NOT EXISTS idx_products_category ON products (category_id);
+CREATE INDEX IF NOT EXISTS idx_products_name ON products (product_name);
+
+CREATE INDEX IF NOT EXISTS idx_suppliers_status ON suppliers (status);
+CREATE INDEX IF NOT EXISTS idx_suppliers_rating ON suppliers (rating);
+
+CREATE INDEX IF NOT EXISTS idx_warehouses_country ON warehouses (country);
+
+CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders (customer_id);
+CREATE INDEX IF NOT EXISTS idx_orders_product ON orders (product_id);
+CREATE INDEX IF NOT EXISTS idx_orders_date ON orders (order_date);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (order_status);
+
+CREATE INDEX IF NOT EXISTS idx_shipments_mode ON shipments (shipping_mode);
+CREATE INDEX IF NOT EXISTS idx_shipments_delivery_status ON shipments (delivery_status);
+CREATE INDEX IF NOT EXISTS idx_shipments_late_risk ON shipments (late_delivery_risk);
+
+CREATE INDEX IF NOT EXISTS idx_inventory_product ON inventory (product_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_warehouse ON inventory (warehouse_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_stock ON inventory (stock_level);
+
+CREATE INDEX IF NOT EXISTS idx_dim_customer_segment ON dim_customer (Customer_Segment);
+
+CREATE INDEX IF NOT EXISTS idx_dim_product_category ON dim_product (Product_Category_Name);
+
+CREATE INDEX IF NOT EXISTS idx_dim_supplier_rating ON dim_supplier (Supplier_Rating);
+
+CREATE INDEX IF NOT EXISTS idx_dim_shipping_mode ON dim_shipping (Shipping_Mode);
+CREATE INDEX IF NOT EXISTS idx_dim_shipping_status ON dim_shipping (Delivery_Status);
+
+CREATE INDEX IF NOT EXISTS idx_dim_date_year_month ON dim_date (Year, Month);
+CREATE INDEX IF NOT EXISTS idx_dim_date_quarter ON dim_date (Year, Quarter);
+
+CREATE INDEX IF NOT EXISTS idx_fact_order_risk ON fact_order (Risk_Level);
+CREATE INDEX IF NOT EXISTS idx_fact_order_supplier ON fact_order (Supplier_ID);
+CREATE INDEX IF NOT EXISTS idx_fact_order_warehouse ON fact_order (Warehouse_ID);
+CREATE INDEX IF NOT EXISTS idx_fact_order_date ON fact_order (Date_ID);
+CREATE INDEX IF NOT EXISTS idx_fact_order_customer ON fact_order (Customer_ID);
+CREATE INDEX IF NOT EXISTS idx_fact_order_product ON fact_order (Product_ID);

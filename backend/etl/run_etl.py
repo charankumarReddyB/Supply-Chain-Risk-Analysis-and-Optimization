@@ -2,7 +2,6 @@ import os
 import random
 import pandas as pd
 import numpy as np
-import pymysql
 from datetime import datetime
 from backend.config import Config
 from backend.models.database import get_db_connection, run_sql_file
@@ -82,16 +81,13 @@ def run_etl_pipeline():
     # Connect to MySQL
     conn = get_db_connection()
     try:
-        # Disable foreign key checks for clean load
+        # Clear existing data recursively to prevent primary key duplicates when re-running
         with conn.cursor() as cursor:
-            cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
-            
-            # Clear existing data to prevent primary key duplicates when re-running
             tables = ["fact_order", "dim_customer", "dim_product", "dim_supplier", "dim_warehouse", 
                       "dim_shipping", "dim_date", "inventory", "shipments", "orders", "warehouses", 
                       "suppliers", "products", "customers"]
-            for table in tables:
-                cursor.execute(f"TRUNCATE TABLE {table};")
+            tables_str = ", ".join(tables)
+            cursor.execute(f"TRUNCATE TABLE {tables_str} CASCADE;")
             conn.commit()
             
         print("Truncated operational and warehouse tables. Loading dimensions and reference data...")
@@ -200,7 +196,7 @@ def run_etl_pipeline():
             cursor.executemany(
                 """INSERT INTO orders (order_id, customer_id, product_id, quantity, sales, profit, order_date, order_status, payment_type) 
                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
-                   ON DUPLICATE KEY UPDATE sales=sales+VALUES(sales), profit=profit+VALUES(profit), quantity=quantity+VALUES(quantity)""",
+                   ON CONFLICT (order_id) DO UPDATE SET sales=orders.sales+EXCLUDED.sales, profit=orders.profit+EXCLUDED.profit, quantity=orders.quantity+EXCLUDED.quantity""",
                 orders_df.values.tolist()
             )
             # Load Shipments in OLTP
@@ -322,20 +318,11 @@ def run_etl_pipeline():
                 fact_records
             )
             
-            # Re-enable foreign key checks
-            cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
         conn.commit()
         
         print("ETL load finished successfully!")
         
     except Exception as e:
-        # Make sure foreign key checks are re-enabled in case of error
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-            conn.commit()
-        except:
-            pass
         print(f"Error during ETL loading: {e}")
         raise e
     finally:

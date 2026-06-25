@@ -1,4 +1,5 @@
-import pymysql
+import psycopg2
+import psycopg2.extras
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from backend.config import Config
@@ -8,14 +9,15 @@ engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True, pool_
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 def get_db_connection():
-    """Returns a raw PyMySQL connection."""
-    return pymysql.connect(
+    """Returns a raw PostgreSQL connection."""
+    return psycopg2.connect(
         host=Config.DB_HOST,
         port=Config.DB_PORT,
         user=Config.DB_USER,
         password=Config.DB_PASSWORD,
         database=Config.DB_NAME,
-        cursorclass=pymysql.cursors.DictCursor
+        sslmode=Config.DB_SSLMODE,
+        cursor_factory=psycopg2.extras.RealDictCursor
     )
 
 def execute_query(query, params=None, fetch=True):
@@ -25,7 +27,7 @@ def execute_query(query, params=None, fetch=True):
         with conn.cursor() as cursor:
             cursor.execute(query, params or ())
             if fetch:
-                return cursor.fetchall()
+                return [dict(row) for row in cursor.fetchall()]
             conn.commit()
             return cursor.rowcount
     finally:
@@ -58,14 +60,7 @@ def run_sql_file(file_path):
             queries.append("\n".join(current_query))
             current_query = []
             
-    # Connect directly to MySQL server first (without database selected if creating it)
-    conn = pymysql.connect(
-        host=Config.DB_HOST,
-        port=Config.DB_PORT,
-        user=Config.DB_USER,
-        password=Config.DB_PASSWORD,
-        cursorclass=pymysql.cursors.DictCursor
-    )
+    conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             for q in queries:
