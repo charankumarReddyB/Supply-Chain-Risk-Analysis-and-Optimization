@@ -49,16 +49,16 @@ def generate_data(num_records=18500):
     ]
     
     product_names = {
-        1: ["Tata Steel HR Sheets", "JSW NeoSteel Rebars", "Sail Structural Beams"],
-        2: ["Havells Switchgear 63A", "Bajaj Distribution Transformer", "Polycab Copper Cables 100m"],
-        3: ["UltraTech Premium Cement Bag", "Ambuja Kavach Waterproof Cement", "ACC Gold Cement Bag"],
-        4: ["Exide Heavy Duty Battery 12V", "Bosch India Disc Brake Pads", "Mahindra Tractor Alternators"],
-        5: ["Supreme PVC Pressure Pipes", "Astral CPVC Pipe Fittings", "Prince SWR Pipes 3m"],
-        6: ["Reliance PVC Resin Granules", "Haldia Polyethylene Pellets", "Pidilite Fevicol SH 5kg"],
-        7: ["Wimplast Heavy Storage Crates", "Nilkamal Plastic Pallets", "Hindustan Tin Containers"],
-        8: ["Raymond Safety Jackets", "Arvind Protective Hand Gloves", "Siyarams Industrial Overalls"],
-        9: ["Asian Paints Apcolite Primer", "Berger Industrial Epoxy Paint", "Nerolac Rust Protector 20L"],
-        10: ["L&T Control Panel Board", "Schneider India Digital Meters", "Siemens AC Drive 5HP"]
+        1: ["Atlas Steel HR Sheets", "IronCore NeoSteel Rebars", "Structra Mild Steel Beams"],
+        2: ["VoltMax Switchgear 63A", "ElectroCorp Distribution Transformer", "WireLink Copper Cables 100m"],
+        3: ["BuildPro Premium Cement Bag", "AquaShield Waterproof Cement", "DuraSet Gold Cement Bag"],
+        4: ["PowerCell Heavy Duty Battery 12V", "MotorZen Disc Brake Pads", "AgroMech Tractor Alternators"],
+        5: ["FloPrime PVC Pressure Pipes", "AquaFit CPVC Pipe Fittings", "HydroLine SWR Pipes 3m"],
+        6: ["SynthResin PVC Granules", "PolyMark Polyethylene Pellets", "BondTech Industrial Adhesive 5kg"],
+        7: ["StorMax Heavy Storage Crates", "PalletCraft Plastic Pallets", "ContainerX Tin Containers"],
+        8: ["SafeGuard Safety Jackets", "ProShield Protective Hand Gloves", "WorkPro Industrial Overalls"],
+        9: ["CoatMaster Apcolite Primer", "ChemCoat Industrial Epoxy Paint", "RustBlock Anti-Corrosion Paint 20L"],
+        10: ["ControlX Control Panel Board", "MetroElec Digital Meters", "DriveCore AC Drive 5HP"]
     }
     
     cities = [

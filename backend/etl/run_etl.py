@@ -101,9 +101,9 @@ def run_etl_pipeline():
         suppliers_data = [
             (1, "Bharat Metals & Logistics", "info@bharatmetals.in", "+91-98765-43210", 4.8, "Active"),
             (2, "Krishna Industrial Manufacturing", "sales@krishnamfg.in", "+91-98765-43211", 3.2, "Active"),
-            (3, "Adani Supply Chain Solutions", "support@adanilogistics.in", "+91-98765-43212", 4.5, "Active"),
-            (4, "Tata Steel & Materials Corp", "orders@tatasteel.in", "+91-98765-43213", 2.9, "Active"),
-            (5, "Mahindra Swift Distributing", "logistics@mahindradist.in", "+91-98765-43214", 4.1, "Active")
+            (3, "Vanguard Synergy Freight Corp", "support@vanguardsynergy.in", "+91-98765-43212", 4.5, "Active"),
+            (4, "Apex Industrial Alloys & Materials", "orders@apexalloys.in", "+91-98765-43213", 2.9, "Active"),
+            (5, "Aetherius Distribution Networks", "logistics@aetheriusdist.in", "+91-98765-43214", 4.1, "Active")
         ]
         with conn.cursor() as cursor:
             cursor.executemany(

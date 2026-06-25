@@ -29,7 +29,8 @@ def create_app(config_class=None):
     # ─── Extensions ──────────────────────────────────────────────────────────
 
     # Enable CORS for all /api/* routes
-    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
 
     # Initialize JWT Manager
     jwt = JWTManager(app)
@@ -97,6 +98,23 @@ def create_app(config_class=None):
                 except Exception:
                     # Column already exists or table not ready
                     pass
+            # Check default admin credentials in production
+            if os.environ.get("FLASK_ENV", "development").lower() == "production":
+                try:
+                    from werkzeug.security import check_password_hash
+                    admin_user = execute_query("SELECT password_hash FROM users WHERE username = 'admin'")
+                    if admin_user:
+                        db_hash = admin_user[0]["password_hash"]
+                        if check_password_hash(db_hash, "admin123"):
+                            app.logger.warning(
+                                "\n"
+                                "======================================================================\n"
+                                "SECURITY WARNING: The 'admin' account is still using the default\n"
+                                "password ('admin123'). Please change it immediately in production!\n"
+                                "======================================================================\n"
+                            )
+                except Exception as err:
+                    app.logger.warning(f"Could not perform default credentials verification check: {err}")
         except Exception as e:
             app.logger.warning(f"Failed to verify user profile columns: {e}")
 
@@ -150,4 +168,5 @@ def create_app(config_class=None):
 if __name__ == "__main__":
     app = create_app()
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)

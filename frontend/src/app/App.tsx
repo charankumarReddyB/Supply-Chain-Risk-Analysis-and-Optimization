@@ -28,6 +28,24 @@ type Page =
   | "reports"
   | "profile";
 
+// ─── Currency Formatter ───────────────────────────────────────────────────────
+
+/**
+ * Formats a numeric value as Indian Rupees (₹) with Indian digit grouping.
+ * e.g. formatCurrency(1234567) → "₹12,34,567"
+ */
+function formatCurrency(value: number, compact = false): string {
+  if (compact) {
+    if (value >= 10_000_000) return "₹" + (value / 10_000_000).toFixed(1) + "Cr";
+    if (value >= 100_000)    return "₹" + (value / 100_000).toFixed(1) + "L";
+  }
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 // ─── Toast System ─────────────────────────────────────────────────────────────
 
 type ToastType = "success" | "error" | "warning" | "info";
@@ -310,7 +328,7 @@ const AddProductModal = ({ onClose, onSuccess }: { onClose: () => void; onSucces
     { key: "product_name", label: "Product Name", placeholder: "e.g. Control Panel Board" },
     { key: "category_name", label: "Category Name", placeholder: "e.g. Electronics" },
     { key: "category_id", label: "Category ID", placeholder: "e.g. 1" },
-    { key: "product_price", label: "Unit Price ($)", placeholder: "e.g. 299.99" },
+    { key: "product_price", label: "Unit Price (₹)", placeholder: "e.g. 299.99" },
     { key: "description", label: "Description (optional)", placeholder: "Product description..." },
   ];
   return (
@@ -393,7 +411,7 @@ const EditInventoryModal = ({ item, product, onClose, onSuccess }: { item: DbInv
             className="w-full px-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/25 transition-all" />
         </div>
         <div>
-          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Unit Price ($)</label>
+          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Unit Price (₹)</label>
           <input value={form.product_price} onChange={(e) => setForm((p) => ({ ...p, product_price: e.target.value }))}
             className="w-full px-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/25 transition-all" />
         </div>
@@ -466,8 +484,8 @@ const NewOrderModal = ({ onClose, onSuccess }: { onClose: () => void; onSuccess?
     { key: "customer_id", label: "Customer ID", placeholder: "e.g. 1" },
     { key: "product_id", label: "Product ID", placeholder: "e.g. 101" },
     { key: "quantity", label: "Quantity", placeholder: "e.g. 10", type: "number" },
-    { key: "sales", label: "Sales Amount ($)", placeholder: "e.g. 1500.00", type: "number" },
-    { key: "profit", label: "Profit ($)", placeholder: "e.g. 300.00", type: "number" },
+    { key: "sales", label: "Sales Amount (₹)", placeholder: "e.g. 1500.00", type: "number" },
+    { key: "profit", label: "Profit (₹)", placeholder: "e.g. 300.00", type: "number" },
     { key: "days_shipment_scheduled", label: "Scheduled Shipping Days", placeholder: "e.g. 4", type: "number" },
   ];
   return (
@@ -849,7 +867,7 @@ const LoginPage = ({ onLogin }: { onLogin: (user: any) => void }) => {
             {[
               { label: "Active Suppliers", value: "156" },
               { label: "Risk Reduction", value: "34%" },
-              { label: "Cost Savings", value: "$2.1M" },
+              { label: "Cost Savings", value: "₹2.1Cr" },
             ].map((s) => (
               <div key={s.label}>
                 <div className="text-2xl font-bold" style={{ fontFamily: "'Poppins', sans-serif" }}>{s.value}</div>
@@ -1177,7 +1195,7 @@ const kpiData: KPICardProps[] = [
   { title: "Total Suppliers", value: "156", change: "+3 new", Icon: Building2, iconBg: "bg-indigo-600", trend: "up" },
   { title: "Delayed Deliveries", value: "43", change: "+8.2%", Icon: Clock, iconBg: "bg-amber-500", trend: "down" },
   { title: "Inventory Level", value: "87%", change: "-2.1%", Icon: Package, iconBg: "bg-teal-600", trend: "down" },
-  { title: "Revenue", value: "$4.2M", change: "+18.3%", Icon: DollarSign, iconBg: "bg-emerald-600", trend: "up" },
+  { title: "Revenue", value: "₹4.2Cr", change: "+18.3%", Icon: DollarSign, iconBg: "bg-emerald-600", trend: "up" },
   { title: "Risk Score", value: "6.8/10", change: "-0.5 pts", Icon: AlertTriangle, iconBg: "bg-red-500", trend: "up" },
 ];
 
@@ -1189,20 +1207,24 @@ const activityMeta = {
 };
 
 const DashboardPage = ({ onNavigate, user }: { onNavigate: (p: Page) => void; user: any }) => {
+  const isAdmin = user?.role === "admin";
   const [showAlerts, setShowAlerts] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const loadStats = useCallback(async () => {
     try {
-      const data = await apiService.dashboard.getStats();
+      // Admin gets full financial data; regular users get the public (non-financial) subset
+      const data = isAdmin
+        ? await apiService.dashboard.getStats()
+        : await apiService.dashboard.getStatsPublic();
       setStats(data);
     } catch (err: any) {
       showToast("error", "Failed to load dashboard statistics");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     loadStats();
@@ -1211,14 +1233,17 @@ const DashboardPage = ({ onNavigate, user }: { onNavigate: (p: Page) => void; us
   // ── Dynamic KPI Calculations ──────────────────────────────────────────────
   const dynamicKPIs = useMemo(() => {
     if (!stats || !stats.kpis) {
-      return [
+      const emptyKPIs = [
         { title: "Total Orders", value: "—", change: "...", Icon: ShoppingCart, iconBg: "bg-blue-600", trend: "up" as const },
         { title: "Total Suppliers", value: "—", change: "...", Icon: Building2, iconBg: "bg-indigo-600", trend: "up" as const },
         { title: "Delayed Deliveries", value: "—", change: "...", Icon: Clock, iconBg: "bg-amber-500", trend: "down" as const },
         { title: "Inventory Level", value: "—", change: "...", Icon: Package, iconBg: "bg-teal-600", trend: "down" as const },
-        { title: "Revenue", value: "—", change: "...", Icon: DollarSign, iconBg: "bg-emerald-600", trend: "up" as const },
         { title: "Risk Score", value: "—", change: "...", Icon: AlertTriangle, iconBg: "bg-red-500", trend: "up" as const },
       ];
+      if (isAdmin) {
+        emptyKPIs.splice(4, 0, { title: "Revenue", value: "—", change: "...", Icon: DollarSign, iconBg: "bg-emerald-600", trend: "up" as const });
+      }
+      return emptyKPIs;
     }
 
     const { kpis, inventory_status } = stats;
@@ -1234,23 +1259,25 @@ const DashboardPage = ({ onNavigate, user }: { onNavigate: (p: Page) => void; us
     const inventoryVal = Math.round((ok / totalInv) * 100) + "%";
 
     const rev = Number(kpis.total_revenue || 0);
-    const revenueVal = rev >= 1000000
-      ? "$" + (rev / 1000000).toFixed(1) + "M"
-      : "$" + rev.toLocaleString();
+    const revenueVal = formatCurrency(rev, true);
 
     const high = Number(kpis.high_risk_orders || 0);
     const med = Number(kpis.medium_risk_orders || 0);
     const tot = Number(kpis.total_orders || 1);
     const riskScoreVal = (((high + med * 0.5) / tot) * 10).toFixed(1) + "/10";
 
-    return [
+    const baseKPIs = [
       { title: "Total Orders", value: totalOrdersVal, change: "+12.5%", Icon: ShoppingCart, iconBg: "bg-blue-600", trend: "up" as const },
       { title: "Total Suppliers", value: totalSuppliersVal, change: "+3 new", Icon: Building2, iconBg: "bg-indigo-600", trend: "up" as const },
       { title: "Delayed Deliveries", value: delayedCount, change: "+8.2%", Icon: Clock, iconBg: "bg-amber-500", trend: "down" as const },
       { title: "Inventory Level", value: inventoryVal, change: "-2.1%", Icon: Package, iconBg: "bg-teal-600", trend: "down" as const },
-      { title: "Revenue", value: revenueVal, change: "+18.3%", Icon: DollarSign, iconBg: "bg-emerald-600", trend: "up" as const },
       { title: "Risk Score", value: riskScoreVal, change: "-0.5 pts", Icon: AlertTriangle, iconBg: "bg-red-500", trend: "up" as const },
     ];
+    // Revenue card shown only to admins (financial data)
+    if (isAdmin) {
+      baseKPIs.splice(4, 0, { title: "Revenue", value: revenueVal, change: "+18.3%", Icon: DollarSign, iconBg: "bg-emerald-600", trend: "up" as const });
+    }
+    return baseKPIs;
   }, [stats]);
 
   // ── Dynamic Order Trend Chart Data ────────────────────────────────────────
@@ -1413,25 +1440,27 @@ const DashboardPage = ({ onNavigate, user }: { onNavigate: (p: Page) => void; us
         </Card>
       </div>
 
-      {/* Charts row 2 */}
+      {/* Charts row 2 — Supplier Performance visible to admins only */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <Card className="lg:col-span-2 p-6">
-          <SectionHeader title="Supplier Performance" subtitle="On-time delivery, quality & cost scores (%)" />
-          <ResponsiveContainer width="100%" height={210}>
-            <BarChart data={dynamicSupplierPerf} barGap={2} barSize={11} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend wrapperStyle={{ fontSize: "11px" }} />
-              <Bar dataKey="onTime" name="On-Time %" fill="#2563eb" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="quality" name="Quality %" fill="#10b981" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="cost" name="Cost Score" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
+        {isAdmin && (
+          <Card className="lg:col-span-2 p-6">
+            <SectionHeader title="Supplier Performance" subtitle="On-time delivery, quality & cost scores (%)" />
+            <ResponsiveContainer width="100%" height={210}>
+              <BarChart data={dynamicSupplierPerf} barGap={2} barSize={11} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Legend wrapperStyle={{ fontSize: "11px" }} />
+                <Bar dataKey="onTime" name="On-Time %" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="quality" name="Quality %" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="cost" name="Cost Score" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        )}
 
-        <Card className="p-6">
+        <Card className={isAdmin ? "p-6" : "lg:col-span-3 p-6"}>
           <SectionHeader title="Recent Activity" />
           <div className="space-y-3.5">
             {dynamicActivities.map((a, i) => {
@@ -1958,8 +1987,8 @@ const OrdersPage = ({ user }: { user: any }) => {
                       <td className="py-3.5 px-3 text-xs font-medium text-slate-700 whitespace-nowrap">{o.customer_fname} {o.customer_lname}</td>
                       <td className="py-3.5 px-3 text-xs text-slate-500 whitespace-nowrap">{o.product_name}</td>
                       <td className="py-3.5 px-3 text-xs font-bold text-slate-800">{o.quantity}</td>
-                      <td className="py-3.5 px-3 text-sm font-semibold text-slate-800">${Number(o.sales).toFixed(2)}</td>
-                      <td className="py-3.5 px-3 text-xs font-semibold" style={{ color: Number(o.profit) >= 0 ? '#16a34a' : '#dc2626' }}>${Number(o.profit).toFixed(2)}</td>
+                      <td className="py-3.5 px-3 text-sm font-semibold text-slate-800">{formatCurrency(Number(o.sales))}</td>
+                      <td className="py-3.5 px-3 text-xs font-semibold" style={{ color: Number(o.profit) >= 0 ? '#16a34a' : '#dc2626' }}>{formatCurrency(Number(o.profit))}</td>
                       <td className="py-3.5 px-3 text-xs text-slate-400">{o.order_date?.slice(0, 10)}</td>
                       <td className="py-3.5 px-3"><Badge label={o.order_status} colorClass={statusColor[o.order_status] ?? "bg-slate-100 text-slate-600"} /></td>
                     </tr>
@@ -1983,8 +2012,8 @@ const OrdersPage = ({ user }: { user: any }) => {
                 { label: "Customer", value: `${selectedOrder.customer_fname} ${selectedOrder.customer_lname}` },
                 { label: "Product", value: selectedOrder.product_name },
                 { label: "Quantity", value: selectedOrder.quantity },
-                { label: "Sales", value: `$${Number(selectedOrder.sales).toFixed(2)}` },
-                { label: "Profit", value: `$${Number(selectedOrder.profit).toFixed(2)}` },
+                { label: "Sales", value: formatCurrency(Number(selectedOrder.sales)) },
+                { label: "Profit", value: formatCurrency(Number(selectedOrder.profit)) },
                 { label: "Payment", value: selectedOrder.payment_type },
                 { label: "Order Date", value: selectedOrder.order_date?.slice(0, 10) },
               ].map(f => (
@@ -2185,7 +2214,7 @@ const OptimizationPage = () => (
     {/* Impact KPIs */}
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {[
-        { label: "Projected Savings", value: "$340K", note: "This quarter", Icon: DollarSign, bg: "bg-emerald-600" },
+        { label: "Projected Savings", value: "₹28L", note: "This quarter", Icon: DollarSign, bg: "bg-emerald-600" },
         { label: "Delivery Improvement", value: "+23%", note: "On-time rate gain", Icon: TrendingUp, bg: "bg-blue-600" },
         { label: "Inventory Reduction", value: "18%", note: "Excess stock freed", Icon: Package, bg: "bg-indigo-600" },
         { label: "Supplier Score Gain", value: "+12 pts", note: "Avg performance", Icon: Star, bg: "bg-amber-500" },
@@ -2205,10 +2234,10 @@ const OptimizationPage = () => (
         <SectionHeader title="Best Supplier Recommendations" subtitle="AI-ranked by composite performance score" />
         <div className="space-y-2">
           {[
-            { rank: 1, name: "FastShip Ltd", score: 94, country: "UK", saving: "$28K", reason: "Best on-time delivery, lowest risk profile across all categories" },
-            { rank: 2, name: "Acme Manufacturing", score: 91, country: "USA", saving: "$21K", reason: "High quality scores, predictable pricing, domestic advantage" },
-            { rank: 3, name: "Nordic Supplies", score: 88, country: "Sweden", saving: "$17K", reason: "Excellent quality, fast lead times, favorable trade terms" },
-            { rank: 4, name: "Global Logistics Co", score: 83, country: "China", saving: "$14K", reason: "Cost-effective, broad SKU coverage, proven capacity" },
+            { rank: 1, name: "Bharat Metals & Logistics", score: 94, country: "India", saving: "₹23L", reason: "Best on-time delivery, lowest risk profile across all categories" },
+            { rank: 2, name: "Vanguard Synergy Freight Corp", score: 91, country: "India", saving: "₹17L", reason: "High quality scores, predictable pricing, broad network advantage" },
+            { rank: 3, name: "Aetherius Distribution Networks", score: 88, country: "India", saving: "₹14L", reason: "Excellent quality, fast lead times, favorable trade terms" },
+            { rank: 4, name: "Krishna Industrial Manufacturing", score: 83, country: "India", saving: "₹11L", reason: "Cost-effective, broad SKU coverage, proven capacity" },
           ].map((s) => (
             <div key={s.rank} className="flex items-start gap-3 p-3.5 rounded-xl hover:bg-blue-50/60 transition-colors group">
               <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${s.rank === 1 ? "bg-amber-100 text-amber-700" : s.rank === 2 ? "bg-slate-100 text-slate-600" : "bg-slate-50 text-slate-500"
@@ -2262,11 +2291,11 @@ const OptimizationPage = () => (
         <SectionHeader title="Transportation Efficiency" subtitle="Route and mode analysis" />
         <div className="space-y-4">
           {[
-            { route: "USA → HQ Warehouse", mode: "Air Freight", eff: 92, saving: "+$4.2K", trend: "up" },
-            { route: "Germany → HQ", mode: "Sea + Rail", eff: 78, saving: "+$8.1K", trend: "up" },
-            { route: "India → HQ", mode: "Air Freight", eff: 61, saving: "-$2.3K", trend: "down" },
-            { route: "China → HQ", mode: "Sea Freight", eff: 85, saving: "+$6.7K", trend: "up" },
-            { route: "Sweden → HQ", mode: "Air Freight", eff: 88, saving: "+$3.4K", trend: "up" },
+            { route: "Mumbai → Central Hub", mode: "Road Freight", eff: 92, saving: "+₹3.5L", trend: "up" },
+            { route: "Delhi → Central Hub", mode: "Rail + Road", eff: 78, saving: "+₹6.8L", trend: "up" },
+            { route: "Chennai → Central Hub", mode: "Air Freight", eff: 61, saving: "-₹1.9L", trend: "down" },
+            { route: "Kolkata → Central Hub", mode: "Sea + Road", eff: 85, saving: "+₹5.6L", trend: "up" },
+            { route: "Bengaluru → Central Hub", mode: "Road Freight", eff: 88, saving: "+₹2.8L", trend: "up" },
           ].map((r) => (
             <div key={r.route} className="flex items-center gap-3">
               <div className="p-1.5 bg-blue-50 rounded-lg flex-shrink-0"><Truck size={13} className="text-blue-600" /></div>
@@ -2293,11 +2322,11 @@ const OptimizationPage = () => (
         <SectionHeader title="Cost Reduction Recommendations" subtitle="Ranked by estimated annual impact" />
         <div className="space-y-2.5">
           {[
-            { title: "Implement demand forecasting AI", impact: "$67K", difficulty: "Complex", Icon: Activity, badge: "bg-purple-100 text-purple-700" },
-            { title: "Switch to sea freight for non-urgent orders", impact: "$41K", difficulty: "Medium", Icon: Globe, badge: "bg-blue-100 text-blue-700" },
-            { title: "Consolidate India-origin shipments", impact: "$23K", difficulty: "Easy", Icon: Package2, badge: "bg-emerald-100 text-emerald-700" },
-            { title: "Renegotiate TechParts supply contract", impact: "$18K", difficulty: "Medium", Icon: Award, badge: "bg-blue-100 text-blue-700" },
-            { title: "Automate PO generation for low-risk SKUs", impact: "$12K", difficulty: "Easy", Icon: CheckCircle, badge: "bg-emerald-100 text-emerald-700" },
+            { title: "Implement demand forecasting AI", impact: "₹55L", difficulty: "Complex", Icon: Activity, badge: "bg-purple-100 text-purple-700" },
+            { title: "Switch to rail freight for non-urgent orders", impact: "₹34L", difficulty: "Medium", Icon: Globe, badge: "bg-blue-100 text-blue-700" },
+            { title: "Consolidate cross-city shipments", impact: "₹19L", difficulty: "Easy", Icon: Package2, badge: "bg-emerald-100 text-emerald-700" },
+            { title: "Renegotiate Krishna Industrial contract", impact: "₹15L", difficulty: "Medium", Icon: Award, badge: "bg-blue-100 text-blue-700" },
+            { title: "Automate PO generation for low-risk SKUs", impact: "₹10L", difficulty: "Easy", Icon: CheckCircle, badge: "bg-emerald-100 text-emerald-700" },
           ].map((r) => (
             <div key={r.title} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-blue-50/60 transition-colors group">
               <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0"><r.Icon size={13} className="text-blue-700" /></div>
@@ -2328,24 +2357,24 @@ const ReportsPage = () => {
   const getKPIs = () => {
     if (period === "quarterly") {
       return [
-        { label: "Total Revenue", value: "$14.15M", change: "+12%", trend: "up" as const },
-        { label: "Total Cost", value: "$8.65M", change: "+6%", trend: "down" as const },
-        { label: "Gross Profit", value: "$5.50M", change: "+23%", trend: "up" as const },
+        { label: "Total Revenue", value: "₹116Cr", change: "+12%", trend: "up" as const },
+        { label: "Total Cost", value: "₹71Cr", change: "+6%", trend: "down" as const },
+        { label: "Gross Profit", value: "₹45Cr", change: "+23%", trend: "up" as const },
         { label: "Orders Fulfilled", value: "8,102", change: "+10%", trend: "up" as const },
       ];
     } else if (period === "yearly") {
       return [
-        { label: "Total Revenue", value: "$52.80M", change: "+15%", trend: "up" as const },
-        { label: "Total Cost", value: "$32.10M", change: "+8%", trend: "down" as const },
-        { label: "Gross Profit", value: "$20.70M", change: "+28%", trend: "up" as const },
+        { label: "Total Revenue", value: "₹437Cr", change: "+15%", trend: "up" as const },
+        { label: "Total Cost", value: "₹266Cr", change: "+8%", trend: "down" as const },
+        { label: "Gross Profit", value: "₹171Cr", change: "+28%", trend: "up" as const },
         { label: "Orders Fulfilled", value: "31,450", change: "+11%", trend: "up" as const },
       ];
     } else {
       // monthly
       return [
-        { label: "Total Revenue", value: "$4.62M", change: "+18%", trend: "up" as const },
-        { label: "Total Cost", value: "$2.80M", change: "+9%", trend: "down" as const },
-        { label: "Gross Profit", value: "$1.82M", change: "+31%", trend: "up" as const },
+        { label: "Total Revenue", value: "₹38Cr", change: "+18%", trend: "up" as const },
+        { label: "Total Cost", value: "₹23Cr", change: "+9%", trend: "down" as const },
+        { label: "Gross Profit", value: "₹15Cr", change: "+31%", trend: "up" as const },
         { label: "Orders Fulfilled", value: "2,641", change: "+14%", trend: "up" as const },
       ];
     }
@@ -2412,8 +2441,8 @@ const ReportsPage = () => {
   };
 
   const formatYValue = (v: number) => {
-    if (period === "monthly") return `$${v}K`;
-    return `$${v}M`;
+    if (period === "monthly") return `₹${v}K`;
+    return `₹${v}Cr`;
   };
 
   // ── Real CSV / Excel download ─────────────────────────────────────────────
@@ -2424,7 +2453,7 @@ const ReportsPage = () => {
       ["Generated", new Date().toLocaleString(), "", "", ""],
       ["", "", "", "", ""],
       ["=== ORDER SUMMARY ===", "", "", "", ""],
-      ["Order ID", "Supplier", "Product", "Qty", "Status", "Value ($)"],
+      ["Order ID", "Supplier", "Product", "Qty", "Status", "Value (₹)"],
       ...orders.map((o) => [o.id, o.supplier, o.product, o.qty, o.status, o.value.toFixed(2)]),
       ["", "", "", "", "", ""],
       ["=== SUPPLIER SUMMARY ===", "", "", "", "", ""],
@@ -2432,7 +2461,7 @@ const ReportsPage = () => {
       ...suppliers.map((s) => [s.id, s.name, s.country, s.category, s.onTime, s.quality, s.risk]),
       ["", "", "", "", "", "", ""],
       ["=== INVENTORY SUMMARY ===", "", "", "", "", "", ""],
-      ["Product ID", "Name", "Category", "Stock Qty", "Reorder Point", "Unit Price ($)", "Status"],
+      ["Product ID", "Name", "Category", "Stock Qty", "Reorder Point", "Unit Price (₹)", "Status"],
       ...products.map((p) => [p.id, p.name, p.category, p.stock, p.reorder, p.price.toFixed(2), p.status]),
     ];
 
@@ -2457,7 +2486,7 @@ const ReportsPage = () => {
     if (!win) { showToast("error", "Please allow pop-ups to export PDF"); return; }
 
     const orderRows = orders.map((o) =>
-      `<tr><td>${o.id}</td><td>${o.supplier}</td><td>${o.product}</td><td>${o.qty}</td><td>${o.status}</td><td>$${o.value.toLocaleString()}</td></tr>`
+      `<tr><td>${o.id}</td><td>${o.supplier}</td><td>${o.product}</td><td>${o.qty}</td><td>${o.status}</td><td>${formatCurrency(o.value)}</td></tr>`
     ).join("");
 
     const supplierRows = suppliers.map((s) =>
@@ -2465,7 +2494,7 @@ const ReportsPage = () => {
     ).join("");
 
     const inventoryRows = products.map((p) =>
-      `<tr><td>${p.id}</td><td>${p.name}</td><td>${p.category}</td><td>${p.stock.toLocaleString()}</td><td>${p.reorder.toLocaleString()}</td><td>$${p.price.toFixed(2)}</td><td>${p.status}</td></tr>`
+      `<tr><td>${p.id}</td><td>${p.name}</td><td>${p.category}</td><td>${p.stock.toLocaleString()}</td><td>${p.reorder.toLocaleString()}</td><td>${formatCurrency(p.price)}</td><td>${p.status}</td></tr>`
     ).join("");
 
     const activeKPIs = getKPIs();
@@ -2801,7 +2830,7 @@ const ReportsPage = () => {
         <Card className="p-6">
           <SectionHeader
             title="Revenue vs Cost"
-            subtitle={`${period.charAt(0).toUpperCase() + period.slice(1)} financial performance (${period === "monthly" ? "$K" : "$M"})`}
+            subtitle={`${period.charAt(0).toUpperCase() + period.slice(1)} financial performance (${period === "monthly" ? "₹K" : "₹Cr"})`}
           />
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={getRevenueChartData()} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>

@@ -154,9 +154,16 @@ Authorization: Bearer <your_jwt_token>
 
 Get a token by calling `POST /api/auth/login`.
 
-**Default admin credentials:**
-- Username: `admin`
-- Password: `admin123`
+> [!WARNING]
+> Do NOT use the default credentials in production. The system will issue warning logs at startup if default credentials are detected in a production environment.
+
+### Local Development Credentials (Local Dev Only)
+- **Admin**:
+  - Username: `admin`
+  - Password: `admin123`
+- **Standard User**:
+  - Username: `user`
+  - Password: `user123`
 
 ---
 
@@ -262,16 +269,29 @@ python -m backend.app
 
 ---
 
+## Production Deployment & WSGI Serving
+
+For production, serve the application using a WSGI server like **Gunicorn**:
+
+```bash
+gunicorn -w 4 -b 0.0.0.0:5000 backend.app:app
+```
+
+---
+
 ## Environment Variables Reference
 
 | Variable | Default | Description |
 |---|---|---|
+| `FLASK_ENV` | `development` | Set to `production` to activate production settings and seed safety checks |
+| `FLASK_DEBUG` | `false` | Enable/disable Flask debug mode |
 | `DB_HOST` | `localhost` | MySQL host |
 | `DB_PORT` | `3306` | MySQL port |
 | `DB_USER` | `root` | MySQL username |
 | `DB_PASSWORD` | *(empty)* | MySQL password |
 | `DB_NAME` | `supply_chain_db` | Database name |
-| `JWT_SECRET_KEY` | *(change this!)* | JWT signing key |
+| `JWT_SECRET_KEY` | *(required)* | JWT signing key (Must be set in production; startup will fail if missing) |
+| `ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated list of allowed CORS origins (e.g. `https://your-app.netlify.app`) |
 
 ---
 

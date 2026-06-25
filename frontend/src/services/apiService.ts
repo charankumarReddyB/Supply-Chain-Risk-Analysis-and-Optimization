@@ -4,7 +4,7 @@
  * Backend Base URL: http://localhost:5000
  */
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = `${(import.meta as any).env.VITE_API_BASE_URL || "http://localhost:5000"}/api`;
 
 // ── Auth helpers ────────────────────────────────────────────────────────────
 const getHeaders = (): Record<string, string> => {
@@ -87,6 +87,9 @@ export const apiService = {
   dashboard: {
     getStats: async () =>
       handleResponse(await fetch(`${BASE_URL}/dashboard/stats`, { headers: getHeaders() })),
+
+    getStatsPublic: async () =>
+      handleResponse(await fetch(`${BASE_URL}/dashboard/stats-public`, { headers: getHeaders() })),
 
     getKPIs: async () =>
       handleResponse(await fetch(`${BASE_URL}/dashboard/kpis`, { headers: getHeaders() })),
