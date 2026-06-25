@@ -21,23 +21,31 @@ def init_system(skip_db_errors=True):
     print("            SUPPLY CHAIN SYSTEM INITIALIZATION & SEEDING              ")
     print("======================================================================")
     
-    db_available = True
+    # Check if we should skip database operations (during build step)
+    build_only = "--build-only" in sys.argv or os.environ.get("BUILD_ONLY") == "true"
+    db_available = not build_only
+    
+    if build_only:
+        print("[INFO] Running in build-only mode. Database operations will be skipped.")
     
     # 1. Create Schema DDL
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    schema_path = os.path.abspath(os.path.join(current_dir, "..", "database_setup.sql"))
-    print(f"\nStep 1: Setting up database schema from {schema_path}...")
-    try:
-        run_sql_file(schema_path)
-        print("Database schema created successfully.")
-    except Exception as e:
-        print(f"Error during schema creation: {e}")
-        if skip_db_errors:
-            print("[WARNING] Database not accessible. Skipping database schema setup.")
-            db_available = False
-        else:
-            print("Make sure your database server is running and configured correctly in config.py.")
-            sys.exit(1)
+    if db_available:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        schema_path = os.path.abspath(os.path.join(current_dir, "..", "database_setup.sql"))
+        print(f"\nStep 1: Setting up database schema from {schema_path}...")
+        try:
+            run_sql_file(schema_path)
+            print("Database schema created successfully.")
+        except Exception as e:
+            print(f"Error during schema creation: {e}")
+            if skip_db_errors:
+                print("[WARNING] Database not accessible. Skipping database schema setup.")
+                db_available = False
+            else:
+                print("Make sure your database server is running and configured correctly in config.py.")
+                sys.exit(1)
+    else:
+        print("\nStep 1: Setting up database schema skipped (build-only mode).")
         
     # 2. Seed Admin and User accounts
     if db_available:
