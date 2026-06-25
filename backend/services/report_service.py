@@ -419,10 +419,10 @@ class ReportService:
                 ROUND(SUM(Sales), 2) AS Total_Revenue,
                 ROUND(SUM(Profit), 2) AS Total_Profit,
                 ROUND(AVG(Delivery_Delay), 2) AS Avg_Delay,
-                ROUND(COUNT(*) / (SELECT COUNT(*) FROM fact_order) * 100, 2) AS Percentage
+                ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM fact_order), 2) AS Percentage
             FROM fact_order
             GROUP BY Risk_Level
-            ORDER BY FIELD(Risk_Level, 'High', 'Medium', 'Low')
+            ORDER BY CASE Risk_Level WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END
         """)
 
         doc = SimpleDocTemplate(output_path, pagesize=letter,

@@ -244,10 +244,10 @@ SELECT
     ROUND(SUM(f.Sales), 2)       AS Total_Revenue,
     ROUND(SUM(f.Profit), 2)      AS Total_Profit,
     ROUND(AVG(f.Delivery_Delay), 2) AS Avg_Delay_Days,
-    ROUND(COUNT(f.Fact_ID) / (SELECT COUNT(*) FROM fact_order) * 100, 2) AS Percentage_Of_Total
+    ROUND(COUNT(f.Fact_ID) * 100.0 / (SELECT COUNT(*) FROM fact_order), 2) AS Percentage_Of_Total
 FROM fact_order f
 GROUP BY f.Risk_Level
-ORDER BY FIELD(f.Risk_Level, 'High', 'Medium', 'Low');
+ORDER BY CASE f.Risk_Level WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END;
 
 
 -- ============================================================================

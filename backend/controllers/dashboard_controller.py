@@ -44,10 +44,10 @@ class DashboardController:
                 SELECT
                     Risk_Level  AS risk_level,
                     COUNT(*)    AS count,
-                    ROUND(COUNT(*) / (SELECT COUNT(*) FROM fact_order) * 100, 2) AS percentage
+                    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM fact_order), 2) AS percentage
                 FROM fact_order
                 GROUP BY Risk_Level
-                ORDER BY FIELD(Risk_Level, 'High', 'Medium', 'Low')
+                ORDER BY CASE Risk_Level WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END
             """)
         except Exception as e:
             logger.error(f"Risk distribution fetch error: {e}")

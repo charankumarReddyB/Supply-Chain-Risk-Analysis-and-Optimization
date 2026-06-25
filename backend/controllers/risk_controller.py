@@ -144,7 +144,11 @@ class RiskController:
                     JOIN products p    ON i.product_id   = p.product_id
                     JOIN warehouses w  ON i.warehouse_id = w.warehouse_id
                 ORDER BY
-                    FIELD(stockout_risk, 'CRITICAL', 'WARNING', 'OK'),
+                    CASE
+                        WHEN i.stock_level <= i.safety_stock  THEN 1
+                        WHEN i.stock_level <= i.reorder_point THEN 2
+                        ELSE 3
+                    END,
                     i.stock_level ASC
             """)
             return results
