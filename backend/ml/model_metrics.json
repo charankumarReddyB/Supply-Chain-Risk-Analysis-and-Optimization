@@ -1,53 +1,53 @@
 {
-    "accuracy": 0.303,
-    "precision_weighted": 0.4144,
-    "recall_weighted": 0.303,
-    "f1_score_weighted": 0.2915,
+    "accuracy": 0.3292,
+    "precision_weighted": 0.4325,
+    "recall_weighted": 0.3292,
+    "f1_score_weighted": 0.3306,
     "confusion_matrix": {
         "High": {
-            "High": 396,
-            "Low": 153,
-            "Medium": 103
+            "High": 421,
+            "Low": 113,
+            "Medium": 125
         },
         "Low": {
-            "High": 622,
-            "Low": 451,
-            "Medium": 155
+            "High": 607,
+            "Low": 389,
+            "Medium": 245
         },
         "Medium": {
             "High": 960,
-            "Low": 586,
-            "Medium": 274
+            "Low": 432,
+            "Medium": 408
         }
     },
     "per_class_metrics": {
         "High": {
-            "precision": 0.2002,
-            "recall": 0.6074,
-            "f1_score": 0.3011,
-            "support": 652
+            "precision": 0.2118,
+            "recall": 0.6388,
+            "f1_score": 0.3181,
+            "support": 659
         },
         "Low": {
-            "precision": 0.379,
-            "recall": 0.3673,
-            "f1_score": 0.373,
-            "support": 1228
+            "precision": 0.4165,
+            "recall": 0.3135,
+            "f1_score": 0.3577,
+            "support": 1241
         },
         "Medium": {
-            "precision": 0.515,
-            "recall": 0.1505,
-            "f1_score": 0.233,
-            "support": 1820
+            "precision": 0.5244,
+            "recall": 0.2267,
+            "f1_score": 0.3165,
+            "support": 1800
         }
     },
     "feature_importance": {
-        "Days for shipment (scheduled)": 0.3144633637746802,
-        "Product Price": 0.28333197435247126,
-        "Sales": 0.23987823271750683,
-        "Category Name": 0.08494372238321997,
-        "Order Item Discount Rate": 0.05132884336513212,
-        "Customer Segment": 0.026053863406989605,
-        "Shipping Mode": 0.0
+        "Days for shipment (scheduled)": 0.29419320862237053,
+        "Sales": 0.25362599096536076,
+        "Product Price": 0.23705984418730514,
+        "Category Name": 0.08331098614298835,
+        "Order Item Discount Rate": 0.07181986994789699,
+        "Customer Segment": 0.04420422206730376,
+        "Shipping Mode": 0.015785878066774443
     },
     "classes": [
         "High",

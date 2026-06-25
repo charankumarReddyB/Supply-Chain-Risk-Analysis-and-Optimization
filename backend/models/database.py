@@ -5,16 +5,23 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from backend.config import Config
 
-# SQLAlchemy setup
-engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True, pool_size=10, max_overflow=20)
+# SQLAlchemy setup (with 3-second connection timeout)
+engine = create_engine(
+    Config.SQLALCHEMY_DATABASE_URI,
+    connect_args={"connect_timeout": 3},
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20
+)
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 def get_db_connection():
-    """Returns a raw PostgreSQL connection."""
+    """Returns a raw PostgreSQL connection with a 3-second timeout."""
     db_url = os.environ.get("DATABASE_URL")
     if db_url:
         return psycopg2.connect(
             db_url,
+            connect_timeout=3,
             cursor_factory=psycopg2.extras.RealDictCursor
         )
     return psycopg2.connect(
@@ -24,6 +31,7 @@ def get_db_connection():
         password=Config.DB_PASSWORD,
         database=Config.DB_NAME,
         sslmode=Config.DB_SSLMODE,
+        connect_timeout=3,
         cursor_factory=psycopg2.extras.RealDictCursor
     )
 
