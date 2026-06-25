@@ -485,14 +485,14 @@ const NewOrderModal = ({ onClose, onSuccess }: { onClose: () => void; onSuccess?
           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Payment Type</label>
           <select value={form.payment_type} onChange={(e) => setForm(p => ({ ...p, payment_type: e.target.value }))}
             className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/25">
-            {["DEBIT","CASH","PAYMENT","TRANSFER"].map(t => <option key={t} value={t}>{t}</option>)}
+            {["DEBIT", "CASH", "PAYMENT", "TRANSFER"].map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div>
           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Shipping Mode</label>
           <select value={form.shipping_mode} onChange={(e) => setForm(p => ({ ...p, shipping_mode: e.target.value }))}
             className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/25">
-            {["Standard Class","First Class","Second Class","Same Day"].map(m => <option key={m} value={m}>{m}</option>)}
+            {["Standard Class", "First Class", "Second Class", "Same Day"].map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
         <div className="flex gap-2 pt-2">
@@ -1017,11 +1017,10 @@ const Sidebar = ({
               <button
                 key={id}
                 onClick={() => onNavigate(id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
-                  active
-                    ? "bg-white/15 text-white shadow-sm"
-                    : "text-blue-200/80 hover:bg-white/10 hover:text-white"
-                }`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${active
+                  ? "bg-white/15 text-white shadow-sm"
+                  : "text-blue-200/80 hover:bg-white/10 hover:text-white"
+                  }`}
               >
                 <Icon
                   size={16}
@@ -1042,11 +1041,10 @@ const Sidebar = ({
               <button
                 key={id}
                 onClick={() => onNavigate(id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
-                  active
-                    ? "bg-white/15 text-white"
-                    : "text-blue-200/80 hover:bg-white/10 hover:text-white"
-                }`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${active
+                  ? "bg-white/15 text-white"
+                  : "text-blue-200/80 hover:bg-white/10 hover:text-white"
+                  }`}
               >
                 <Icon size={16} className={active ? "text-emerald-400" : "text-blue-400 group-hover:text-blue-300 transition-colors"} />
                 <span className="text-[13px]">{label}</span>
@@ -1157,9 +1155,8 @@ const TopNav = ({ page, onNavigate, onRefresh, user }: { page: Page; onNavigate:
           >
             <RefreshCw
               size={15}
-              className={`transition-all duration-700 ${
-                refreshing ? "animate-spin text-blue-600" : "text-slate-500 group-hover:text-blue-600"
-              }`}
+              className={`transition-all duration-700 ${refreshing ? "animate-spin text-blue-600" : "text-slate-500 group-hover:text-blue-600"
+                }`}
             />
           </button>
           <button onClick={() => onNavigate("profile")} className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold text-white flex-shrink-0 hover:opacity-90 transition-opacity"
@@ -1229,18 +1226,18 @@ const DashboardPage = ({ onNavigate, user }: { onNavigate: (p: Page) => void; us
     const totalOrdersVal = Number(kpis.total_orders || 0).toLocaleString();
     const totalSuppliersVal = Number(kpis.total_suppliers || 0).toString();
     const delayedCount = Number(kpis.delayed_deliveries || 0).toLocaleString();
-    
+
     const critical = Number(inventory_status?.critical || 0);
     const warning = Number(inventory_status?.warning || 0);
     const ok = Number(inventory_status?.ok || 0);
     const totalInv = critical + warning + ok || 1;
     const inventoryVal = Math.round((ok / totalInv) * 100) + "%";
-    
+
     const rev = Number(kpis.total_revenue || 0);
-    const revenueVal = rev >= 1000000 
-      ? "$" + (rev / 1000000).toFixed(1) + "M" 
+    const revenueVal = rev >= 1000000
+      ? "$" + (rev / 1000000).toFixed(1) + "M"
       : "$" + rev.toLocaleString();
-    
+
     const high = Number(kpis.high_risk_orders || 0);
     const med = Number(kpis.medium_risk_orders || 0);
     const tot = Number(kpis.total_orders || 1);
@@ -1502,7 +1499,7 @@ const SuppliersPage = ({ user }: { user: any }) => {
   const filtered = dbSuppliers.filter(
     (s) =>
       (s.name.toLowerCase().includes(search.toLowerCase()) ||
-       (s.email || "").toLowerCase().includes(search.toLowerCase())) &&
+        (s.email || "").toLowerCase().includes(search.toLowerCase())) &&
       (filterStatus === "All" || s.status === filterStatus)
   );
 
@@ -1527,7 +1524,7 @@ const SuppliersPage = ({ user }: { user: any }) => {
           { label: "Total Suppliers", value: dbSuppliers.length.toString(), Icon: Building2, bg: "bg-blue-600" },
           { label: "Active", value: dbSuppliers.filter(s => s.status === "Active").length.toString(), Icon: CheckCircle, bg: "bg-emerald-600" },
           { label: "Under Review", value: dbSuppliers.filter(s => s.status === "Review").length.toString(), Icon: AlertTriangle, bg: "bg-amber-500" },
-          { label: "Avg Rating", value: dbSuppliers.length ? (dbSuppliers.reduce((a,s)=>a+Number(s.rating),0)/dbSuppliers.length).toFixed(1)+"/5" : "—", Icon: Star, bg: "bg-indigo-600" },
+          { label: "Avg Rating", value: dbSuppliers.length ? (dbSuppliers.reduce((a, s) => a + Number(s.rating), 0) / dbSuppliers.length).toFixed(1) + "/5" : "—", Icon: Star, bg: "bg-indigo-600" },
         ].map((m) => (
           <Card key={m.label} className="p-4 flex items-center gap-4">
             <div className={`p-2.5 rounded-xl ${m.bg} flex-shrink-0`}>
@@ -1558,9 +1555,8 @@ const SuppliersPage = ({ user }: { user: any }) => {
               <button
                 key={r}
                 onClick={() => { setFilterStatus(r); setCurrentPage(1); }}
-                className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  filterStatus === r ? "bg-blue-900 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${filterStatus === r ? "bg-blue-900 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
               >{r}</button>
             ))}
             {isAdmin && (
@@ -1575,40 +1571,40 @@ const SuppliersPage = ({ user }: { user: any }) => {
           {loading ? (
             <div className="text-center py-12 text-slate-400"><RefreshCw size={24} className="mx-auto mb-2 animate-spin opacity-40" /><p className="text-sm">Loading suppliers...</p></div>
           ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-100">
-                {["ID", "Supplier Name", "Email", "Phone", "Rating", "Status", isAdmin ? "Actions" : null].filter(Boolean).map((h: any) => (
-                  <th key={h} className="text-left py-3 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.map((s, i) => (
-                <tr key={s.supplier_id} className={`border-b border-slate-50 hover:bg-blue-50/50 transition-colors ${i % 2 !== 0 ? "bg-slate-50/40" : ""}` }>
-                  <td className="py-3.5 px-3 text-[10px] text-slate-400 font-mono">{s.supplier_id}</td>
-                  <td className="py-3.5 px-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{s.name}</td>
-                  <td className="py-3.5 px-3 text-xs text-slate-600">{s.email || "—"}</td>
-                  <td className="py-3.5 px-3 text-xs text-slate-600">{s.phone || "—"}</td>
-                  <td className="py-3.5 px-3">
-                    <div className="flex items-center gap-1">
-                      <Star size={11} className="text-amber-400" />
-                      <span className="text-xs font-bold text-slate-700">{Number(s.rating).toFixed(1)}</span>
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-3"><Badge label={s.status} colorClass={statusColor[s.status] ?? "bg-slate-100 text-slate-600"} /></td>
-                  {isAdmin && (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  {["ID", "Supplier Name", "Email", "Phone", "Rating", "Status", isAdmin ? "Actions" : null].filter(Boolean).map((h: any) => (
+                    <th key={h} className="text-left py-3 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {paginated.map((s, i) => (
+                  <tr key={s.supplier_id} className={`border-b border-slate-50 hover:bg-blue-50/50 transition-colors ${i % 2 !== 0 ? "bg-slate-50/40" : ""}`}>
+                    <td className="py-3.5 px-3 text-[10px] text-slate-400 font-mono">{s.supplier_id}</td>
+                    <td className="py-3.5 px-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{s.name}</td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600">{s.email || "—"}</td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600">{s.phone || "—"}</td>
                     <td className="py-3.5 px-3">
-                      <div className="flex items-center gap-0.5">
-                        <button onClick={() => setEditSupplier(s)} className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-900 transition-colors" title="Edit"><Edit2 size={13} /></button>
-                        <button onClick={() => setDeleteSupplier(s)} className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 transition-colors" title="Delete"><Trash2 size={13} /></button>
+                      <div className="flex items-center gap-1">
+                        <Star size={11} className="text-amber-400" />
+                        <span className="text-xs font-bold text-slate-700">{Number(s.rating).toFixed(1)}</span>
                       </div>
                     </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <td className="py-3.5 px-3"><Badge label={s.status} colorClass={statusColor[s.status] ?? "bg-slate-100 text-slate-600"} /></td>
+                    {isAdmin && (
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-0.5">
+                          <button onClick={() => setEditSupplier(s)} className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-900 transition-colors" title="Edit"><Edit2 size={13} /></button>
+                          <button onClick={() => setDeleteSupplier(s)} className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 transition-colors" title="Delete"><Trash2 size={13} /></button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
           {!loading && filtered.length === 0 && (
             <div className="text-center py-12 text-slate-400">
@@ -1742,50 +1738,50 @@ const InventoryPage = ({ user }: { user: any }) => {
           {loading ? (
             <div className="text-center py-12 text-slate-400"><RefreshCw size={24} className="mx-auto mb-2 animate-spin opacity-40" /><p className="text-sm">Loading inventory...</p></div>
           ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-100">
-                {["Product ID", "Product Name", "Warehouse", "Stock Qty", "Reorder Point", "Safety Stock", "Lead Time", "Status", isAdmin ? "Actions" : null].filter(Boolean).map((h: any) => (
-                  <th key={h} className="text-left py-3 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredInv.map((item, i) => {
-                const stockStatus = item.stock_level === 0 ? "Out of Stock" : item.stock_level < item.reorder_point ? "Low Stock" : "In Stock";
-                const fillPct = item.reorder_point > 0 ? Math.min(100, (item.stock_level / (item.reorder_point * 3)) * 100) : 100;
-                const prod = dbProducts.find(p => p.product_id === item.product_id);
-                return (
-                  <tr key={item.inventory_id} className={`border-b border-slate-50 hover:bg-blue-50/50 transition-colors ${i % 2 !== 0 ? "bg-slate-50/40" : ""}`}>
-                    <td className="py-3.5 px-3 text-[10px] text-slate-400 font-mono">{item.product_id}</td>
-                    <td className="py-3.5 px-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{item.product_name}</td>
-                    <td className="py-3.5 px-3 text-xs text-slate-600">{item.warehouse_name}</td>
-                    <td className="py-3.5 px-3">
-                      <span className={`text-sm font-bold ${item.stock_level === 0 ? "text-red-600" : item.stock_level < item.reorder_point ? "text-amber-600" : "text-slate-800"}`}>
-                        {item.stock_level.toLocaleString()}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-3 text-xs text-slate-600">{item.reorder_point.toLocaleString()}</td>
-                    <td className="py-3.5 px-3 text-xs text-slate-600">{item.safety_stock.toLocaleString()}</td>
-                    <td className="py-3.5 px-3 text-xs text-slate-600">{item.lead_time_days}d</td>
-                    <td className="py-3.5 px-3"><Badge label={stockStatus} colorClass={statusColor[stockStatus] ?? "bg-slate-100 text-slate-600"} /></td>
-                    {isAdmin && (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  {["Product ID", "Product Name", "Warehouse", "Stock Qty", "Reorder Point", "Safety Stock", "Lead Time", "Status", isAdmin ? "Actions" : null].filter(Boolean).map((h: any) => (
+                    <th key={h} className="text-left py-3 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInv.map((item, i) => {
+                  const stockStatus = item.stock_level === 0 ? "Out of Stock" : item.stock_level < item.reorder_point ? "Low Stock" : "In Stock";
+                  const fillPct = item.reorder_point > 0 ? Math.min(100, (item.stock_level / (item.reorder_point * 3)) * 100) : 100;
+                  const prod = dbProducts.find(p => p.product_id === item.product_id);
+                  return (
+                    <tr key={item.inventory_id} className={`border-b border-slate-50 hover:bg-blue-50/50 transition-colors ${i % 2 !== 0 ? "bg-slate-50/40" : ""}`}>
+                      <td className="py-3.5 px-3 text-[10px] text-slate-400 font-mono">{item.product_id}</td>
+                      <td className="py-3.5 px-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{item.product_name}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{item.warehouse_name}</td>
                       <td className="py-3.5 px-3">
-                        <div className="flex items-center gap-0.5">
-                          {prod && (
-                            <>
-                              <button onClick={() => setEditItem({ item, product: prod })} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors" title="Edit Product"><Edit2 size={13} /></button>
-                              <button onClick={() => setDeleteProduct(prod)} className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 transition-colors" title="Delete Product"><Trash2 size={13} /></button>
-                            </>
-                          )}
-                        </div>
+                        <span className={`text-sm font-bold ${item.stock_level === 0 ? "text-red-600" : item.stock_level < item.reorder_point ? "text-amber-600" : "text-slate-800"}`}>
+                          {item.stock_level.toLocaleString()}
+                        </span>
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{item.reorder_point.toLocaleString()}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{item.safety_stock.toLocaleString()}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{item.lead_time_days}d</td>
+                      <td className="py-3.5 px-3"><Badge label={stockStatus} colorClass={statusColor[stockStatus] ?? "bg-slate-100 text-slate-600"} /></td>
+                      {isAdmin && (
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center gap-0.5">
+                            {prod && (
+                              <>
+                                <button onClick={() => setEditItem({ item, product: prod })} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors" title="Edit Product"><Edit2 size={13} /></button>
+                                <button onClick={() => setDeleteProduct(prod)} className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 transition-colors" title="Delete Product"><Trash2 size={13} /></button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
           {!loading && filteredInv.length === 0 && (
             <div className="text-center py-12 text-slate-400"><Package size={32} className="mx-auto mb-2 opacity-30" /><p className="text-sm">No inventory records found</p></div>
@@ -1940,37 +1936,36 @@ const OrdersPage = ({ user }: { user: any }) => {
             {loadingOrders ? (
               <div className="text-center py-12 text-slate-400"><RefreshCw size={24} className="mx-auto mb-2 animate-spin opacity-40" /><p className="text-sm">Loading orders...</p></div>
             ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  {["Order ID", "Customer", "Product", "Qty", "Sales", "Profit", "Date", "Status"].map((h) => (
-                    <th key={h} className="text-left py-3 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {dbOrders.slice(0, 100).map((o, i) => (
-                  <tr
-                    key={o.order_id}
-                    onClick={() => setSelectedOrderId(selectedOrderId === o.order_id ? null : o.order_id)}
-                    className={`border-b border-slate-50 cursor-pointer transition-colors ${
-                      selectedOrderId === o.order_id
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-100">
+                    {["Order ID", "Customer", "Product", "Qty", "Sales", "Profit", "Date", "Status"].map((h) => (
+                      <th key={h} className="text-left py-3 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {dbOrders.slice(0, 100).map((o, i) => (
+                    <tr
+                      key={o.order_id}
+                      onClick={() => setSelectedOrderId(selectedOrderId === o.order_id ? null : o.order_id)}
+                      className={`border-b border-slate-50 cursor-pointer transition-colors ${selectedOrderId === o.order_id
                         ? "bg-blue-50 ring-1 ring-inset ring-blue-200"
                         : i % 2 !== 0 ? "bg-slate-50/40 hover:bg-blue-50/40" : "hover:bg-blue-50/40"
-                    }`}
-                  >
-                    <td className="py-3.5 px-3 text-xs font-mono font-semibold text-blue-600">{o.order_id}</td>
-                    <td className="py-3.5 px-3 text-xs font-medium text-slate-700 whitespace-nowrap">{o.customer_fname} {o.customer_lname}</td>
-                    <td className="py-3.5 px-3 text-xs text-slate-500 whitespace-nowrap">{o.product_name}</td>
-                    <td className="py-3.5 px-3 text-xs font-bold text-slate-800">{o.quantity}</td>
-                    <td className="py-3.5 px-3 text-sm font-semibold text-slate-800">${Number(o.sales).toFixed(2)}</td>
-                    <td className="py-3.5 px-3 text-xs font-semibold" style={{color: Number(o.profit) >= 0 ? '#16a34a' : '#dc2626'}}>${Number(o.profit).toFixed(2)}</td>
-                    <td className="py-3.5 px-3 text-xs text-slate-400">{o.order_date?.slice(0,10)}</td>
-                    <td className="py-3.5 px-3"><Badge label={o.order_status} colorClass={statusColor[o.order_status] ?? "bg-slate-100 text-slate-600"} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        }`}
+                    >
+                      <td className="py-3.5 px-3 text-xs font-mono font-semibold text-blue-600">{o.order_id}</td>
+                      <td className="py-3.5 px-3 text-xs font-medium text-slate-700 whitespace-nowrap">{o.customer_fname} {o.customer_lname}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-500 whitespace-nowrap">{o.product_name}</td>
+                      <td className="py-3.5 px-3 text-xs font-bold text-slate-800">{o.quantity}</td>
+                      <td className="py-3.5 px-3 text-sm font-semibold text-slate-800">${Number(o.sales).toFixed(2)}</td>
+                      <td className="py-3.5 px-3 text-xs font-semibold" style={{ color: Number(o.profit) >= 0 ? '#16a34a' : '#dc2626' }}>${Number(o.profit).toFixed(2)}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-400">{o.order_date?.slice(0, 10)}</td>
+                      <td className="py-3.5 px-3"><Badge label={o.order_status} colorClass={statusColor[o.order_status] ?? "bg-slate-100 text-slate-600"} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
         </Card>
@@ -1991,7 +1986,7 @@ const OrdersPage = ({ user }: { user: any }) => {
                 { label: "Sales", value: `$${Number(selectedOrder.sales).toFixed(2)}` },
                 { label: "Profit", value: `$${Number(selectedOrder.profit).toFixed(2)}` },
                 { label: "Payment", value: selectedOrder.payment_type },
-                { label: "Order Date", value: selectedOrder.order_date?.slice(0,10) },
+                { label: "Order Date", value: selectedOrder.order_date?.slice(0, 10) },
               ].map(f => (
                 <div key={String(f.label)} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{f.label}</span>
@@ -2216,9 +2211,8 @@ const OptimizationPage = () => (
             { rank: 4, name: "Global Logistics Co", score: 83, country: "China", saving: "$14K", reason: "Cost-effective, broad SKU coverage, proven capacity" },
           ].map((s) => (
             <div key={s.rank} className="flex items-start gap-3 p-3.5 rounded-xl hover:bg-blue-50/60 transition-colors group">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                s.rank === 1 ? "bg-amber-100 text-amber-700" : s.rank === 2 ? "bg-slate-100 text-slate-600" : "bg-slate-50 text-slate-500"
-              }`}>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${s.rank === 1 ? "bg-amber-100 text-amber-700" : s.rank === 2 ? "bg-slate-100 text-slate-600" : "bg-slate-50 text-slate-500"
+                }`}>
                 {s.rank === 1 ? <Star size={14} /> : s.rank}
               </div>
               <div className="flex-1 min-w-0">
@@ -2587,7 +2581,7 @@ const ReportsPage = () => {
                   <thead>
                     <tr className="bg-blue-900">
                       {importedData[0].map((h, i) => (
-                        <th key={i} className="py-2.5 px-3 text-left text-white font-semibold whitespace-nowrap">{h || `Col ${i+1}`}</th>
+                        <th key={i} className="py-2.5 px-3 text-left text-white font-semibold whitespace-nowrap">{h || `Col ${i + 1}`}</th>
                       ))}
                     </tr>
                   </thead>
@@ -2733,7 +2727,7 @@ const ReportsPage = () => {
                   };
 
                   const { newOrders, newSuppliers, newProducts } = parseImportedCSV(importedData);
-                  
+
                   // Append items to global lists
                   orders.push(...newOrders);
                   suppliers.push(...newSuppliers);
@@ -3191,7 +3185,7 @@ export default function App() {
       case "suppliers": return <SuppliersPage key={pageKey} user={user} />;
       case "inventory": return <InventoryPage key={pageKey} user={user} />;
       case "orders": return <OrdersPage key={pageKey} user={user} />;
-      case "risk": 
+      case "risk":
         if (!isAdmin) return <DashboardPage key={pageKey} onNavigate={navigate} user={user} />;
         return <RiskPage key={pageKey} />;
       case "optimization":
