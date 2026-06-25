@@ -1,5 +1,5 @@
 # =====================================================================
-# Supply Chain Risk Optimization - Backend Requirements
+# Supply Chain Risk Optimization - Backend Requirements (Python 3.11)
 # =====================================================================
 
 # --- Core Framework ---
@@ -15,17 +15,17 @@ psycopg2-binary==2.9.9
 python-dotenv==1.0.1
 
 # --- Data Processing & ML ---
-pandas==2.2.2
-numpy==1.26.4
-scikit-learn==1.5.1
-joblib==1.4.2
+pandas==2.1.4
+numpy==1.26.2
+scikit-learn==1.3.2
+joblib==1.3.2
 
 # --- Simulation & Visualization ---
-matplotlib==3.9.0
+matplotlib==3.8.2
 
 # --- Reporting ---
-reportlab==4.2.2
-openpyxl==3.1.5
+reportlab==4.0.8
+openpyxl==3.1.2
 
 # --- Utilities ---
-python-dateutil==2.9.0
+python-dateutil==2.8.2
