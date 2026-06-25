@@ -5,7 +5,18 @@ Registers all Blueprints and initializes extensions.
 """
 
 import os
+import sys
 import logging
+
+# Bootstrap sys.path to support both module and script executions
+current_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.abspath(current_dir)
+repo_root = os.path.abspath(os.path.join(backend_dir, ".."))
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager

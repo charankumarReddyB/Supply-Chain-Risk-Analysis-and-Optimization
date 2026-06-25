@@ -1,5 +1,15 @@
 import os
 import sys
+
+# Bootstrap sys.path to support both module and script executions
+current_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.abspath(os.path.join(current_dir, ".."))
+repo_root = os.path.abspath(os.path.join(backend_dir, ".."))
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from werkzeug.security import generate_password_hash
 from backend.models.database import run_sql_file, execute_query, get_db_connection
 from backend.etl.generate_mock_data import generate_data
