@@ -15,7 +15,7 @@ if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
 from backend.config import Config
-from backend.models.database import get_db_connection, run_sql_file
+from backend.models.database import get_db_connection, run_sql_file, is_postgres
 
 def run_etl_pipeline():
     print("Starting ETL pipeline...")
@@ -98,8 +98,14 @@ def run_etl_pipeline():
             tables = ["fact_order", "dim_customer", "dim_product", "dim_supplier", "dim_warehouse", 
                       "dim_shipping", "dim_date", "inventory", "shipments", "orders", "warehouses", 
                       "suppliers", "products", "customers"]
-            tables_str = ", ".join(tables)
-            cursor.execute(f"TRUNCATE TABLE {tables_str} CASCADE;")
+            if is_postgres():
+                tables_str = ", ".join(tables)
+                cursor.execute(f"TRUNCATE TABLE {tables_str} CASCADE;")
+            else:
+                cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+                for t in tables:
+                    cursor.execute(f"TRUNCATE TABLE {t};")
+                cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
             conn.commit()
             
         print("Truncated operational and warehouse tables. Loading dimensions and reference data...")
@@ -205,12 +211,25 @@ def run_etl_pipeline():
         
         with conn.cursor() as cursor:
             # Load Orders in OLTP
-            cursor.executemany(
-                """INSERT INTO orders (order_id, customer_id, product_id, quantity, sales, profit, order_date, order_status, payment_type) 
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
-                   ON CONFLICT (order_id) DO UPDATE SET sales=orders.sales+EXCLUDED.sales, profit=orders.profit+EXCLUDED.profit, quantity=orders.quantity+EXCLUDED.quantity""",
-                orders_df.values.tolist()
-            )
+            if is_postgres():
+                order_insert_query = """
+                    INSERT INTO orders (order_id, customer_id, product_id, quantity, sales, profit, order_date, order_status, payment_type) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                    ON CONFLICT (order_id) DO UPDATE SET 
+                        sales = sales + EXCLUDED.sales, 
+                        profit = profit + EXCLUDED.profit, 
+                        quantity = quantity + EXCLUDED.quantity
+                """
+            else:
+                order_insert_query = """
+                    INSERT INTO orders (order_id, customer_id, product_id, quantity, sales, profit, order_date, order_status, payment_type) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                    ON DUPLICATE KEY UPDATE 
+                        sales = sales + VALUES(sales), 
+                        profit = profit + VALUES(profit), 
+                        quantity = quantity + VALUES(quantity)
+                """
+            cursor.executemany(order_insert_query, orders_df.values.tolist())
             # Load Shipments in OLTP
             cursor.executemany(
                 """INSERT INTO shipments (order_id, shipping_date, shipping_mode, days_shipping_real, days_shipment_scheduled, delivery_status, late_delivery_risk) 
