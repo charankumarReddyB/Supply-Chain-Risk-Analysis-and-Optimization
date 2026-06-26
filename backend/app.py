@@ -172,7 +172,7 @@ def create_app(config_class=None):
         return jsonify({
             "status": "online",
             "message": "Supply Chain Risk Analysis & Optimization Backend is running.",
-            "version": "1.0.1-v2",
+            "version": "1.0.1-v3",
             "endpoints": {
                 "auth":         "/api/auth",
                 "dashboard":    "/api/dashboard",
