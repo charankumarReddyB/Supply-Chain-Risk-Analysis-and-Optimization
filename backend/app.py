@@ -162,15 +162,20 @@ def create_app(config_class=None):
                             break
                     
                     if lock_acquired and needs_init:
-                        try:
-                            from backend.utils.init_system import init_system
-                            # Call init_system with skip_db_errors=False to fail fast on configuration errors
-                            init_system(skip_db_errors=False)
-                            app.logger.info("Database initialization and ETL seeding completed successfully!")
-                        except Exception as init_err:
-                            app.logger.error(f"Failed to auto-initialize database on startup: {init_err}")
-                        finally:
-                            release_db_lock()
+                        app.logger.info("Database is empty or missing core tables. Initializing in background to prevent port scan timeouts...")
+                        def run_init_background(app_ctx):
+                            with app_ctx:
+                                try:
+                                    from backend.utils.init_system import init_system
+                                    init_system(skip_db_errors=False)
+                                    app.logger.info("Database initialization and ETL seeding completed successfully!")
+                                except Exception as init_err:
+                                    app.logger.error(f"Failed to auto-initialize database on startup: {init_err}")
+                                finally:
+                                    release_db_lock()
+
+                        import threading
+                        threading.Thread(target=run_init_background, args=(app.app_context(),)).start()
                 else:
                     app.logger.info("Database is already initialized. Running profile column migrations if needed...")
                     for col, col_type in [
