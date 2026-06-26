@@ -125,3 +125,14 @@ def generate_mock_data():
         return jsonify({"message": f"Generated {num_records} records in dataset CSV"}), 200
     except Exception as e:
         return jsonify({"error": f"Failed to generate data: {str(e)}"}), 500
+
+
+@etl_bp.route("/init-db", methods=["POST"])
+def force_init_db():
+    try:
+        from backend.utils.init_system import init_system
+        init_system(skip_db_errors=False)
+        return jsonify({"message": "Database initialized successfully"}), 200
+    except Exception as e:
+        import traceback
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
